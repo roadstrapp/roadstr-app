@@ -299,6 +299,29 @@ class NativeRoutePlanningPresentationTest {
         )
     }
 
+    @Test
+    fun `my location becomes available when the first fix arrives after the planner opened`() {
+        val session = session()
+        assertTrue(session.showPlanner(revision = 1, originQuery = "", destinationQuery = "Chaimandir"))
+        assertFalse(session.state.value.hasGps)
+        assertEquals("", session.state.value.originQuery)
+
+        assertTrue(session.syncGps(hasGps = true, localizedLabel = "La mia posizione"))
+        assertTrue(session.state.value.hasGps)
+        assertEquals("La mia posizione", session.state.value.originQuery)
+        assertTrue(session.useMyLocation(1, "La mia posizione").not())
+    }
+
+    @Test
+    fun `a start the driver typed is not overwritten when the fix arrives`() {
+        val session = session()
+        session.showPlanner(revision = 1, originQuery = "Bologna", destinationQuery = "Imola")
+        session.syncGps(hasGps = true, localizedLabel = "La mia posizione")
+        assertTrue(session.state.value.hasGps)
+        assertEquals("Bologna", session.state.value.originQuery)
+        assertTrue(session.useMyLocation(1, "La mia posizione"))
+    }
+
     private fun session(
         overlay: NativeRouteOverlaySession = NativeRouteOverlaySession(0xFF71_58E2L),
     ) = NativeRoutePlanningSession(overlay)

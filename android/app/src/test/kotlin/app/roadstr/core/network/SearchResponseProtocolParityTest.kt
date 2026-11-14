@@ -134,3 +134,69 @@ class SearchResponseProtocolParityTest {
     private fun encode(value: String): String =
         Base64.getUrlEncoder().withoutPadding().encodeToString(value.toByteArray(Charsets.UTF_8))
 }
+
+class SearchResponsePlaceNameTest {
+    @Test
+    fun `a business keeps its own name before its address`() {
+        val body = """[{"lat":"44.3591","lon":"11.7128","display_name":"Chaimandir, 35, Via Felice Orsini, Imola, Italia",
+            "class":"amenity","type":"restaurant","name":"Chaimandir",
+            "address":{"amenity":"Chaimandir","house_number":"35","road":"Via Felice Orsini","town":"Imola"}}]"""
+        assertEquals(
+            "Chaimandir, Via Felice Orsini 35, Imola",
+            SearchResponseProtocol.parseNominatimSearch(body).single().shortName,
+        )
+    }
+
+    @Test
+    fun `a plain address and a street stay what they were`() {
+        val body = """[{"lat":"44.36","lon":"11.71","display_name":"35, Via Felice Orsini, Imola, Italia",
+            "class":"place","type":"house","address":{"house_number":"35","road":"Via Felice Orsini","town":"Imola"}},
+            {"lat":"44.36","lon":"11.71","display_name":"Via Felice Orsini, Imola, Italia",
+            "class":"highway","type":"residential","name":"Via Felice Orsini",
+            "address":{"road":"Via Felice Orsini","town":"Imola"}}]"""
+        val results = SearchResponseProtocol.parseNominatimSearch(body)
+        assertEquals("Via Felice Orsini 35, Imola", results[0].shortName)
+        assertEquals("Via Felice Orsini, Imola", results[1].shortName)
+    }
+
+    @Test
+    fun `stations, motorway service areas and stops keep their names`() {
+        val body = """[
+            {"lat":"44.5","lon":"11.3","display_name":"Bologna Centrale, Piazza delle Medaglie d'Oro, Bologna",
+             "class":"railway","type":"station","name":"Bologna Centrale",
+             "address":{"railway":"Bologna Centrale","road":"Piazza delle Medaglie d'Oro","city":"Bologna"}},
+            {"lat":"44.4","lon":"11.6","display_name":"Area di servizio Sillaro Ovest, A14, Imola",
+             "class":"highway","type":"services","name":"Area di servizio Sillaro Ovest",
+             "address":{"road":"Autostrada Adriatica","town":"Imola"}},
+            {"lat":"44.36","lon":"11.71","display_name":"Imola Stazione, Viale Andrea Costa, Imola",
+             "class":"highway","type":"bus_stop","name":"Imola Stazione",
+             "address":{"road":"Viale Andrea Costa","town":"Imola"}}]"""
+        assertEquals(
+            listOf(
+                "Bologna Centrale, Piazza delle Medaglie d'Oro, Bologna",
+                "Area di servizio Sillaro Ovest, Autostrada Adriatica, Imola",
+                "Imola Stazione, Viale Andrea Costa, Imola",
+            ),
+            SearchResponseProtocol.parseNominatimSearch(body).map { it.shortName },
+        )
+    }
+
+    @Test
+    fun `an unnamed shop on a street is still its address`() {
+        val body = """[{"lat":"44.36","lon":"11.71","display_name":"Via Emilia, Imola, Italia",
+            "class":"shop","type":"bakery","name":"",
+            "address":{"road":"Via Emilia","town":"Imola"}}]"""
+        assertEquals("Via Emilia", SearchResponseProtocol.parseNominatimSearch(body).single().shortName)
+    }
+
+    @Test
+    fun `photon keeps a place name ahead of its street`() {
+        val body = """{"features":[{"geometry":{"coordinates":[11.7128,44.3591]},
+            "properties":{"name":"Chaimandir","street":"Via Felice Orsini","housenumber":"35",
+            "city":"Imola","osm_key":"amenity","osm_value":"restaurant"}}]}"""
+        assertEquals(
+            "Chaimandir, Via Felice Orsini 35, Imola",
+            SearchResponseProtocol.parsePhoton(body).single().shortName,
+        )
+    }
+}

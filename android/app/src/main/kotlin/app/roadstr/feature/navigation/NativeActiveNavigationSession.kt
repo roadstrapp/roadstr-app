@@ -245,7 +245,10 @@ class NativeActiveNavigationSession(
             hint = routePointIndex,
         )
         routePointIndex = max(routePointIndex, nearest)
-        progressMeters = max(progressMeters, cumulative[routePointIndex])
+        // Progress is where the fix projects onto the route, not the nearest vertex: a motorway
+        // polyline has vertices hundreds of metres apart, which made the remaining distance, the
+        // grey trail behind the cursor and the exit countdown jump in vertex-sized steps.
+        progressMeters = max(progressMeters, projectedProgressMeters(GeoPoint(point.latitude, point.longitude), nearest))
         while (
             passedStepIndex + 1 < stepCumulative.size &&
             stepCumulative[passedStepIndex + 1] <= progressMeters + STEP_ADVANCE_TOLERANCE_METERS
@@ -524,6 +527,23 @@ class NativeActiveNavigationSession(
             distanceMeters = distance,
             bearingDegrees = GeoMath.bearingBetween(points[bestIndex], points[bestIndex + 1]),
         )
+    }
+
+    /** Metres along the route of [position], projected onto the segments touching vertex [nearest]. */
+    private fun projectedProgressMeters(position: GeoPoint, nearest: Int): Double {
+        val lastSegment = points.size - 2
+        if (lastSegment < 0) return cumulative[nearest]
+        var bestDistance = Double.POSITIVE_INFINITY
+        var bestProgress = cumulative[nearest]
+        for (segment in max(0, nearest - 1)..min(lastSegment, nearest)) {
+            val projection = GeoMath.projectOnSegment(position, points[segment], points[segment + 1])
+            if (projection.distanceMeters < bestDistance) {
+                bestDistance = projection.distanceMeters
+                bestProgress = cumulative[segment] +
+                    projection.t * (cumulative[segment + 1] - cumulative[segment])
+            }
+        }
+        return bestProgress
     }
 
     private fun nearestActiveRouteDistance(point: GeoPoint): Double? {

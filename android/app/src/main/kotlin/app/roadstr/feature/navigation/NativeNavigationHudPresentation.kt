@@ -162,7 +162,7 @@ object NativeNavigationHudPresenter {
         val current = step(
             currentStep,
             index = input.stepIndex,
-            distanceLabel = formatter.formatDistance(distance, nowLabel),
+            distanceLabel = formatter.formatManeuverDistance(distance, nowLabel),
             prominentDistance = currentStep.distanceM > 2_000 &&
                 currentStep.direction.lowercase(Locale.ROOT).trim() in longStraightDirections,
         )

@@ -23,7 +23,15 @@ data class RoutingEngineRequest(
     val avoidance: RoutingRouteAvoidance = RoutingRouteAvoidance.None,
     val requestAlternatives: Boolean = true,
     val localDataset: LocalRoutingDataset? = null,
-)
+    /** Driving direction at [origin]; the local engine then only starts on edges going that way. */
+    val originHeadingDegrees: Double? = null,
+    val originHeadingToleranceDegrees: Int = DEFAULT_HEADING_TOLERANCE_DEGREES,
+) {
+    companion object {
+        /** Valhalla's own default. */
+        const val DEFAULT_HEADING_TOLERANCE_DEGREES = 60
+    }
+}
 
 enum class RoutingEngineUnavailableReason {
     AreaNotDownloaded,
@@ -138,6 +146,7 @@ class OnlineRoutingEngine(
     private fun NativeRoutingException.toEngineFailure(): RoutingEngineFailureKind = when (kind) {
         NativeRoutingFailureKind.InvalidConfiguration -> RoutingEngineFailureKind.InvalidRequest
         NativeRoutingFailureKind.InvalidResponse -> RoutingEngineFailureKind.InvalidResponse
+        NativeRoutingFailureKind.UTurnRejected -> RoutingEngineFailureKind.EngineFailure
         NativeRoutingFailureKind.HttpStatus,
         NativeRoutingFailureKind.ResponseTooLarge,
         NativeRoutingFailureKind.Timeout,

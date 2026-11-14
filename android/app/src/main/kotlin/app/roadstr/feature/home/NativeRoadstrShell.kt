@@ -813,6 +813,10 @@ fun NativeRoadstrShell(
         val gpsSearchPoint = gpsSnapshot.fix?.point?.let { point ->
             SearchResponsePoint(point.latitude, point.longitude)
         }
+        val hasGpsFix = gpsSearchPoint != null
+        LaunchedEffect(hasGpsFix, myLocationLabel, routePlanningState.revision) {
+            routePlanningSession.syncGps(hasGpsFix, myLocationLabel)
+        }
         // A map link the user confirmed inside a page becomes the destination, as a tap on the map would.
         DisposableEffect(webBrowser, journeyCoordinator, gpsSearchPoint, myLocationLabel) {
             webBrowser?.onDestination = { latitude, longitude ->

@@ -5,6 +5,7 @@ import app.roadstr.core.search.SearchHistoryEntry
 import app.roadstr.core.search.SearchHistoryProtocol
 import app.roadstr.core.network.NetworkResponseLimit
 import app.roadstr.core.network.NetworkTimeoutBudget
+import app.roadstr.core.network.RerouteUTurnPolicy
 import app.roadstr.core.network.RoutingParsedRoute
 import app.roadstr.core.network.RoutingProviderConfigProtocol
 import app.roadstr.core.network.RoutingProviderConfiguration
@@ -25,6 +26,8 @@ import app.roadstr.service.network.NativeHttpMethod
 import app.roadstr.service.network.NativeHttpRequest
 import app.roadstr.service.routing.NativeRoutingQuery
 import app.roadstr.service.routing.NativeAvoidanceRoutingQuery
+import app.roadstr.service.routing.NativeRoutingException
+import app.roadstr.service.routing.NativeRoutingFailureKind
 import app.roadstr.service.routing.NativeRoutingService
 import app.roadstr.service.routing.LocalRoutingDataset
 import app.roadstr.service.routing.OfflineRoutingPreferences
@@ -78,8 +81,12 @@ import java.time.Instant
 import java.util.Locale
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import app.roadstr.core.geo.CityCountryIndex
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 /** Live, credential-free OSM/search/routing/transit composition for the road-test APK. */
 class NativeRoadTestJourneyGateway(
@@ -229,36 +236,18 @@ class NativeRoadTestJourneyGateway(
         require(mode != NativeRouteTransportMode.Transit) {
             "Public transport is not available in the road-test routing gateway"
         }
-        val points = listOf(origin) + via + destination
-        val preferences = offlineSettings()
-        if (preferences.enabled) {
-            val installed = installedPackages()
-            val coverage = OfflineCoverageIndex(installed)
-            val covering = coverage.coveringPackages(points.map { it.toRoutingPoint() })
-            val selected = installed.firstOrNull { it.artifact.id in covering }
-            val selection = RoutingEngineSelector.select(
-                RoutingEngineSelectionInput(
-                    offlineRoutingEnabled = true,
-                    coverage = coverage.coversRoute(points.map { it.toRoutingPoint() }),
-                    networkAvailable = networkAvailable(),
-                    onlineFallbackAllowed = preferences.onlineFallbackAllowed,
-                    mode = mode,
-                ),
+        val local = localSelection(listOf(origin) + via + destination, mode)
+        if (local != null) {
+            return localRoutes(
+                origin,
+                destination,
+                via,
+                mode,
+                languageCode,
+                avoidHighwaysAndTolls,
+                avoidUnpavedRoads,
+                local.installed,
             )
-            when (selection) {
-                RoutingEngineSelection.Local -> return localRoutes(
-                    origin,
-                    destination,
-                    via,
-                    mode,
-                    languageCode,
-                    avoidHighwaysAndTolls,
-                    avoidUnpavedRoads,
-                    selected,
-                )
-                RoutingEngineSelection.Online -> Unit
-                is RoutingEngineSelection.Unavailable -> throw NativeRoutingSelectionException(selection.reason)
-            }
         }
         return onlineRoutes(
             origin,
@@ -269,6 +258,34 @@ class NativeRoadTestJourneyGateway(
             avoidHighwaysAndTolls,
             avoidUnpavedRoads,
         )
+    }
+
+    private class LocalSelection(val installed: InstalledOfflinePackage?)
+
+    /**
+     * The on-device engine when offline routing is on and covers [points]; null when the trip goes
+     * online (offline routing off, or allowed to fall back). Throws when neither may answer.
+     */
+    private fun localSelection(points: List<SearchResponsePoint>, mode: NativeRouteTransportMode): LocalSelection? {
+        val preferences = offlineSettings()
+        if (!preferences.enabled) return null
+        val installed = installedPackages()
+        val coverage = OfflineCoverageIndex(installed)
+        val covering = coverage.coveringPackages(points.map { it.toRoutingPoint() })
+        val selection = RoutingEngineSelector.select(
+            RoutingEngineSelectionInput(
+                offlineRoutingEnabled = true,
+                coverage = coverage.coversRoute(points.map { it.toRoutingPoint() }),
+                networkAvailable = networkAvailable(),
+                onlineFallbackAllowed = preferences.onlineFallbackAllowed,
+                mode = mode,
+            ),
+        )
+        return when (selection) {
+            RoutingEngineSelection.Local -> LocalSelection(installed.firstOrNull { it.artifact.id in covering })
+            RoutingEngineSelection.Online -> null
+            is RoutingEngineSelection.Unavailable -> throw NativeRoutingSelectionException(selection.reason)
+        }
     }
 
     override suspend fun transitPlan(
@@ -341,6 +358,8 @@ class NativeRoadTestJourneyGateway(
         avoidHighwaysAndTolls: Boolean,
         avoidUnpavedRoads: Boolean,
         installed: InstalledOfflinePackage?,
+        originHeadingDegrees: Double? = null,
+        originHeadingToleranceDegrees: Int = RoutingEngineRequest.DEFAULT_HEADING_TOLERANCE_DEGREES,
     ): List<RoutingParsedRoute> {
         val engine = localRoutingEngine
             ?: throw NativeRoutingSelectionException(app.roadstr.service.routing.RoutingEngineUnavailableReason.DatasetMissing)
@@ -366,6 +385,8 @@ class NativeRoadTestJourneyGateway(
                     tileExtractPath = value.filePath,
                     buildId = value.artifact.build.compatibilityId,
                 ),
+                originHeadingDegrees = originHeadingDegrees,
+                originHeadingToleranceDegrees = originHeadingToleranceDegrees,
             ),
         )
         return when (outcome) {
@@ -502,41 +523,119 @@ class NativeRoadTestJourneyGateway(
         require(mode != NativeRouteTransportMode.Transit) {
             "Public transport is not available in the road-test routing gateway"
         }
-        if (offlineSettings().enabled) {
-            return routes(
-                origin = origin,
-                destination = destination,
-                via = emptyList(),
-                mode = mode,
-                languageCode = languageCode,
+        val query = NativeRoutingQuery(
+            origin = origin.toRoutingPoint(),
+            destination = destination.toRoutingPoint(),
+            configuration = routingConfiguration(),
+            languageCode = languageCode,
+            vehicle = mode.wireValue,
+            requestAlternatives = false,
+            originBearingDegrees = headingDegrees,
+        )
+        val local = localSelection(listOf(origin, destination), mode)
+        var standard: List<RoutingParsedRoute> = emptyList()
+        val preferred = when {
+            local != null -> localRoutes(
+                origin, destination, emptyList(), mode, languageCode,
+                avoidHighwaysAndTolls = false,
+                avoidUnpavedRoads = avoidUnpavedRoads,
+                installed = local.installed,
+            )
+            // Offline routing on, but this trip may and does go online: the same answer routes() gives.
+            offlineSettings().enabled -> onlineRoutes(
+                origin, destination, emptyList(), mode, languageCode,
+                avoidHighwaysAndTolls = false,
                 avoidUnpavedRoads = avoidUnpavedRoads,
             )
+            else -> {
+                standard = routingService.getRerouteRoutes(
+                    query = query,
+                    speedKilometresPerHour = speedKilometresPerHour,
+                    straightLineDistanceMeters = straightLineDistanceMeters,
+                )
+                val avoided = if (avoidUnpavedRoads && mode == NativeRouteTransportMode.Driving) {
+                    runCatching {
+                        routingService.getAvoidanceRoute(
+                            NativeAvoidanceRoutingQuery(
+                                origin = origin.toRoutingPoint(),
+                                destination = destination.toRoutingPoint(),
+                                mode = RoutingAvoidanceMode.OFF_ROAD,
+                                languageCode = languageCode,
+                            ),
+                        )
+                    }.getOrNull()
+                } else {
+                    null
+                }
+                if (avoided == null) standard else listOf(avoided)
+            }
         }
-        val standard = routingService.getRerouteRoutes(
-            query = NativeRoutingQuery(
-                origin = origin.toRoutingPoint(),
-                destination = destination.toRoutingPoint(),
-                configuration = routingConfiguration(),
-                languageCode = languageCode,
-                vehicle = mode.wireValue,
-                requestAlternatives = false,
-                originBearingDegrees = headingDegrees,
-            ),
-            speedKilometresPerHour = speedKilometresPerHour,
-            straightLineDistanceMeters = straightLineDistanceMeters,
-        )
-        if (!avoidUnpavedRoads || mode != NativeRouteTransportMode.Driving) return standard
-        val avoided = runCatching {
-            routingService.getAvoidanceRoute(
-                NativeAvoidanceRoutingQuery(
-                    origin = origin.toRoutingPoint(),
-                    destination = destination.toRoutingPoint(),
-                    mode = RoutingAvoidanceMode.OFF_ROAD,
-                    languageCode = languageCode,
-                ),
+        if (mode != NativeRouteTransportMode.Driving) return preferred
+        val chosen = preferred.firstOrNull() ?: return preferred
+        // Most answers go on ahead and need nothing more. One that starts by turning round is fine in
+        // town and not on a motorway: only then is the road under the car looked up.
+        if (!RerouteUTurnPolicy.reversesDirection(chosen, headingDegrees)) return preferred
+        if (!uTurnForbidden(origin, speedKilometresPerHour)) return preferred
+        val usable = RerouteUTurnPolicy.withoutReversals((preferred + standard).distinct(), headingDegrees)
+        if (usable.isNotEmpty()) return usable
+        // Ask again with the driving direction as a wide constraint: on to the next exit, then back.
+        if (local == null) return routingService.getRerouteRoutesWithoutUTurn(query)
+        if (headingDegrees == null) throw NativeRoutingException(NativeRoutingFailureKind.UTurnRejected)
+        val directed = try {
+            localRoutes(
+                origin, destination, emptyList(), mode, languageCode,
+                avoidHighwaysAndTolls = false,
+                avoidUnpavedRoads = avoidUnpavedRoads,
+                installed = local.installed,
+                originHeadingDegrees = headingDegrees,
+                originHeadingToleranceDegrees = RerouteUTurnPolicy.WIDE_BEARING_TOLERANCE_DEGREES,
             )
-        }.getOrNull()
-        return if (avoided == null) standard else listOf(avoided)
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            // Valhalla answers 171 when no edge goes the right way; that is not a missing area.
+            emptyList()
+        }
+        return RerouteUTurnPolicy.withoutReversals(directed, headingDegrees).ifEmpty {
+            throw NativeRoutingException(NativeRoutingFailureKind.UTurnRejected)
+        }
+    }
+
+    private suspend fun uTurnForbidden(point: SearchResponsePoint, speedKilometresPerHour: Double): Boolean {
+        val road = if (networkAvailable()) speedLimitResolver.forbidsUTurn(point) else null
+        if (road != null) return RerouteUTurnPolicy.forbidsUTurn(road, speedKilometresPerHour, null)
+        // OSM could not say: the speed stands in, against the country's rural limit (Italy: 90).
+        val place = cityCountryIndex()?.nearest(point.latitude, point.longitude)
+        val threshold = RerouteUTurnPolicy.fallbackSpeedKmh(place?.countryCode, place?.admin1Code)
+        // Mostly the value the trip already holds for this stretch; a stuck lookup never holds the reroute up.
+        val limit = if (speedKilometresPerHour > threshold) {
+            withTimeoutOrNull(SPEED_LIMIT_LOOKUP_MILLIS) {
+                try {
+                    speedLimitResolver.resolve(point)
+                } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    null
+                }
+            }
+        } else {
+            null
+        }
+        return RerouteUTurnPolicy.forbidsUTurn(null, speedKilometresPerHour, limit, threshold)
+    }
+
+    @Volatile private var cityCountries: CityCountryIndex? = null
+
+    /** The bundled GeoNames cities, read once; null when the asset is not in this build. */
+    private suspend fun cityCountryIndex(): CityCountryIndex? {
+        cityCountries?.let { return it }
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                // AAPT expands .gz assets and exposes them without the suffix.
+                context.assets.open("offline_catalog/geonames-cities15000.tsv").bufferedReader(Charsets.UTF_8)
+                    .useLines { lines -> CityCountryIndex.fromTsv(lines) }
+            }.getOrNull()?.also { cityCountries = it }
+        }
     }
 
     override suspend fun loadSearchHistory(): List<SearchHistoryEntry> =
@@ -562,6 +661,7 @@ class NativeRoadTestJourneyGateway(
     )
 
     private companion object {
+        const val SPEED_LIMIT_LOOKUP_MILLIS = 3_000L
         val OSRM_CONFIGURATION: RoutingProviderConfiguration = RoutingProviderConfigProtocol.resolve(
             providerKey = "osrm",
             secureApiKey = null,

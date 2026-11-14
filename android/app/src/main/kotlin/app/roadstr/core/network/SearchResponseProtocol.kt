@@ -438,7 +438,15 @@ object SearchResponseProtocol {
                 ?: address["municipality"],
             120,
         )
+        val poiName = nominatimPlaceName(json, address, display, road, city, featureClass)
         val shortName = when {
+            // A business or point of interest keeps its own name; the street and the town follow.
+            poiName != null -> placeLabel(
+                name = poiName,
+                street = road?.let { if (houseNumber != null) "$it $houseNumber" else it },
+                city = city,
+            )
+
             road != null && houseNumber != null -> buildString {
                 append(road)
                 append(' ')
@@ -461,6 +469,63 @@ object SearchResponseProtocol {
             city = city,
             brand = SearchResult.clampRemoteText(extraTags["brand"], 160),
         )
+    }
+
+    /** "Name, street 12, Town": the parts that exist and are not repeats of one another. */
+    private fun placeLabel(name: String, street: String?, city: String?): String {
+        val parts = mutableListOf(name)
+        if (street != null && !street.equals(name, ignoreCase = true)) parts += street
+        if (city != null && parts.none { it.equals(city, ignoreCase = true) }) parts += city
+        return parts.joinToString(", ")
+    }
+
+    private val POI_CLASSES = setOf(
+        "amenity", "shop", "tourism", "historic", "leisure", "office", "craft", "healthcare", "sport",
+        "man_made", "building",
+    )
+
+    /** "35", "35/A", "12-14": a house number, not the name of anything. */
+    private val NUMBERING_ONLY = Regex("^[\\d\\s/.,-]+[A-Za-z]?$")
+
+    private val NON_POI_CLASSES = setOf("highway", "place", "boundary", "landuse", "waterway", "natural")
+
+    /** Places with a name of their own that are not businesses: stations, airports, stops. */
+    private val NAMED_PLACE_CLASSES = POI_CLASSES + setOf("railway", "aeroway", "public_transport", "aerialway")
+
+    /** `highway=*` values that are places, not roads: a stop or a motorway service area keeps its name. */
+    private val NAMED_HIGHWAY_TYPES = setOf("bus_stop", "services", "rest_area", "platform")
+
+    private fun isNamedPlace(osmClass: String?, osmType: String?): Boolean =
+        osmClass in NAMED_PLACE_CLASSES || (osmClass == "highway" && osmType in NAMED_HIGHWAY_TYPES)
+
+    /**
+     * The name of what a Nominatim hit actually is, when that is a business or a point of
+     * interest and not a street, a house number or a settlement; null otherwise.
+     */
+    private fun nominatimPlaceName(
+        json: Map<*, *>,
+        address: Map<*, *>,
+        display: String,
+        road: String?,
+        city: String?,
+        featureClass: String?,
+    ): String? {
+        val type = json["type"] as? String
+        if (featureClass in NON_POI_CLASSES && !isNamedPlace(featureClass, type)) return null
+        fun text(value: Any?): String? = SearchResult.clampRemoteText(value, 120)
+        val candidate = text(json["name"])
+            ?: listOf("amenity", "shop", "tourism", "historic", "leisure", "office", "craft")
+                .firstNotNullOfOrNull { key -> text(address[key]) }
+            ?: display.split(',').first().trimDart().takeIf { it.isNotEmpty() && isNamedPlace(featureClass, type) }
+        if (candidate == null || NUMBERING_ONLY.matches(candidate)) return null
+        if (
+            candidate.equals(road, ignoreCase = true) ||
+            candidate.equals(city, ignoreCase = true) ||
+            candidate.equals(text(address["house_number"]), ignoreCase = true)
+        ) {
+            return null
+        }
+        return candidate
     }
 
     private fun parsePhotonFeature(feature: Map<*, *>): SearchResult? {
@@ -495,6 +560,14 @@ object SearchResponseProtocol {
         val state = text("state")
         val country = text("country")
         val shortName = when {
+            // A named place on a street (a shop, a restaurant) keeps its name before the address.
+            name != null && street != null && !name.equals(street, ignoreCase = true) &&
+                isNamedPlace(text("osm_key"), text("osm_value")) -> placeLabel(
+                name = name,
+                street = if (houseNumber != null) "$street $houseNumber" else street,
+                city = city,
+            )
+
             street != null -> buildString {
                 append(street)
                 if (houseNumber != null) append(" $houseNumber")

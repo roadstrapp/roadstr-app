@@ -4,6 +4,51 @@ All notable Roadstr changes are documented here. Roadstr 1.0.0 is the first stab
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-11-14
+
+### Changed
+
+- **No U-turn on a motorway when the route is recalculated.** A reroute that would start by turning round (a "Make a U-turn"
+  step in its first kilometre, or a first leg pointing back against the driving direction, which is what a snap to the opposite
+  carriageway gives) is no longer accepted on a road where turning round is not possible: `highway=motorway` or `trunk`, their
+  `_link` ramps, `motorroad=yes`, `expressway=yes`. The road is read from OpenStreetMap (Valhalla's `locate` on the FOSSGIS server,
+  Overpass if that does not answer), and only when an answer actually turns round. OSRM is then asked again with the driving
+  direction as a wider bearing constraint (90° instead of 45°, which still rules out the other carriageway), so the route carries
+  on to the next exit and comes back on the opposite carriageway; the on-device engine gets the same heading constraint. If
+  nothing usable comes back, the reroute is retried a few seconds further on instead of announcing a U-turn.
+- **When OpenStreetMap cannot say what the road is**, the speed stands in for it: above the country's default limit for an
+  ordinary road outside built-up areas (Italy 90 km/h, Germany 100, France 80, United Kingdom 60 mph, each US state its own) and
+  above the road's OSM speed limit, or above that country limit alone when no speed limit is known. The table covers 156 countries and
+  territories, 49 US states and DC (Hawaii, missing from the source, takes the national value), generated from the OpenStreetMap
+  wiki's *Default speed limits* by `tools/kotlin_rewrite/generate_country_rural_speeds.py`; a country without a value uses the
+  world median (90 km/h), and the threshold never goes below 60 km/h. The country is the one of the nearest city in the bundled GeoNames list, so no request is made
+  for it.
+- **The distance to the next manoeuvre counts down in round numbers**: whole kilometres beyond 10 km, half kilometres from 2 to
+  10 km, 100 m steps from 2 km down to 500 m, 50 m steps down to 100 m and 10 m steps below that (miles and feet likewise), so a
+  motorway exit reads 800 m, 750 m, 700 m instead of 771 m or 349 m.
+- **A business or a point of interest found by search keeps its name.** A shop, restaurant, station, airport, bus stop or motorway
+  service area is shown as "Chaimandir, Via Felice Orsini 35, Imola" (name, then street and town when they are known) in the
+  results, the destination field and the search history, where it used to be shown as its street alone. Plain addresses, streets
+  and towns read as before.
+
+### Fixed
+
+- **The grey trail behind the cursor follows the car.** Progress along the route is where the position projects onto the route,
+  no longer the nearest point of its geometry. On a motorway those points can be kilometres apart, so the driven part turned grey,
+  the remaining distance shrank and the countdown to an exit moved in jumps of hundreds of metres; the early spoken announcement of
+  a manoeuvre could be skipped altogether when progress jumped over it.
+- **"My location" as the start when the GPS fix comes late.** A route planner opened before the first fix never offered the
+  current position and left the start empty. It now offers it as soon as the fix arrives and fills an empty start with it; a start
+  typed by hand is left alone. Without a fix, "My location" is no longer searched for as if it were a place name.
+- Overpass queries for the speed limit and the road class write coordinates as plain decimals; near the equator or the prime
+  meridian Kotlin's default formatting could produce `5.0E-5`, which Overpass rejects.
+
+### Privacy
+
+- When a reroute would start with a U-turn, the position goes to the FOSSGIS Valhalla server (or an Overpass mirror) to ask what
+  kind of road it is: the same servers, and the same kind of request, as the live speed limit. Reroutes that go on ahead send
+  nothing extra. The README's Privacy section now names the Valhalla server as well.
+
 ## [1.3.0] — 2026-11-11
 
 ### Changed

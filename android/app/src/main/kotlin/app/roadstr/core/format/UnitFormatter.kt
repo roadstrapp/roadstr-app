@@ -29,6 +29,51 @@ class UnitFormatter(private val imperial: Boolean) {
         }
     }
 
+    /**
+     * Countdown to the next manoeuvre or exit, in round numbers that tick over steadily:
+     * 10 km, 2.5 km, 1.3 km, 900 m, 450 m, 150 m, 80 m. The farther away, the coarser the step,
+     * so a motorway exit never reads 771 m or 349 m. Below 50 m it says [nowLabel] (or 0).
+     */
+    fun formatManeuverDistance(metres: Double, nowLabel: String = ""): String {
+        if (metres < 50) {
+            return if (nowLabel.isNotEmpty()) nowLabel else if (imperial) "0 ft" else "0 m"
+        }
+        if (imperial) {
+            val miles = metres / METRES_PER_MILE
+            return when {
+                miles >= 10 -> "${trimmed(roundTo(miles, 1.0))} mi"
+                miles >= 2 -> "${trimmed(roundTo(miles, 0.5))} mi"
+                miles >= 0.5 -> "${trimmed(roundTo(miles, 0.1))} mi"
+                else -> {
+                    val feet = metres / METRES_PER_FOOT
+                    val step = if (feet >= 300) 100.0 else 50.0
+                    "${trimmed(roundTo(feet, step))} ft"
+                }
+            }
+        }
+        return when {
+            metres >= 10_000 -> "${trimmed(roundTo(metres / 1000, 1.0))} km"
+            metres >= 2_000 -> "${trimmed(roundTo(metres / 1000, 0.5))} km"
+            metres >= 1_000 -> "${trimmed(roundTo(metres / 1000, 0.1))} km"
+            metres >= 500 -> roundTo(metres, 100.0).let { rounded ->
+                if (rounded >= 1_000) "1 km" else "${trimmed(rounded)} m"
+            }
+            metres >= 100 -> "${trimmed(roundTo(metres, 50.0))} m"
+            else -> "${trimmed(roundTo(metres, 10.0))} m"
+        }
+    }
+
+    /** Nearest multiple of [step]; whole numbers when the result is one. */
+    private fun roundTo(value: Double, step: Double): Double {
+        val multiples = floor(value / step + 0.5)
+        return multiples * step
+    }
+
+    private fun trimmed(value: Double): String {
+        val tenths = floor(value * 10 + 0.5) / 10
+        return if (tenths == floor(tenths)) tenths.toLong().toString() else fixedOne(tenths)
+    }
+
     fun toDisplaySpeed(kilometresPerHour: Double): Double =
         if (imperial) kilometresPerHour / 1.60934 else kilometresPerHour
 

@@ -5,6 +5,7 @@ import app.roadstr.core.network.RoutingAvoidanceAttempt
 import app.roadstr.core.network.RoutingAvoidanceAttemptOutcome
 import app.roadstr.core.network.RoutingAvoidanceMode
 import app.roadstr.core.network.RoutingAvoidanceProtocol
+import app.roadstr.core.network.RerouteUTurnPolicy
 import app.roadstr.core.network.RoutingAttemptOutcome
 import app.roadstr.core.network.RoutingEndpointDecision
 import app.roadstr.core.network.RoutingEndpointPolicy
@@ -40,6 +41,7 @@ data class NativeRoutingQuery(
     val via: List<RoutingRequestPoint> = emptyList(),
     val requestAlternatives: Boolean = true,
     val originBearingDegrees: Double? = null,
+    val originBearingToleranceDegrees: Int = RoutingRequestProtocol.rerouteBearingToleranceDegrees,
 )
 
 data class NativeAvoidanceRoutingQuery(
@@ -56,6 +58,9 @@ enum class NativeRoutingFailureKind {
     Timeout,
     Transport,
     InvalidResponse,
+
+    /** Every reroute answer began with a U-turn on a road where none may be made. */
+    UTurnRejected,
 }
 
 /**
@@ -73,6 +78,7 @@ class NativeRoutingException(
         NativeRoutingFailureKind.Timeout -> "Routing request timed out"
         NativeRoutingFailureKind.Transport -> "Routing transport failed"
         NativeRoutingFailureKind.InvalidResponse -> "Routing provider returned an invalid response"
+        NativeRoutingFailureKind.UTurnRejected -> "Every reroute would start with a forbidden U-turn"
     },
 )
 
@@ -202,6 +208,27 @@ class NativeRoutingService internal constructor(
     }
 
     /**
+     * Second answer for a reroute whose first answer turned round where that is forbidden (see
+     * [RerouteUTurnPolicy]). OSRM is asked again with the bearing window widened to
+     * [RerouteUTurnPolicy.WIDE_BEARING_TOLERANCE_DEGREES]: the opposite carriageway stays excluded, so
+     * the route carries on to the next exit or junction and comes back from there. The request
+     * without any bearing is never made here, since that is the one that snaps to the other
+     * carriageway. Other providers take no bearing, so they get no second request: the failure goes
+     * back to the caller, which retries a little further on.
+     */
+    suspend fun getRerouteRoutesWithoutUTurn(query: NativeRoutingQuery): List<RoutingParsedRoute> {
+        val heading = query.originBearingDegrees
+        if (query.configuration.provider == RoutingProvider.OSRM && heading != null) {
+            val wide = getRoutes(
+                query.copy(originBearingToleranceDegrees = RerouteUTurnPolicy.WIDE_BEARING_TOLERANCE_DEGREES),
+            )
+            val usable = RerouteUTurnPolicy.withoutReversals(wide, heading)
+            if (usable.isNotEmpty()) return usable
+        }
+        throw NativeRoutingException(NativeRoutingFailureKind.UTurnRejected)
+    }
+
+    /**
      * Executes the fixture-locked avoidance policy.
      *
      * Highway/toll mode first requires a hard Valhalla exclusion and retries
@@ -317,6 +344,7 @@ class NativeRoutingService internal constructor(
                 via = query.via,
                 requestAlternatives = query.requestAlternatives,
                 originBearingDegrees = query.originBearingDegrees,
+                originBearingToleranceDegrees = query.originBearingToleranceDegrees,
             )
 
             RoutingProvider.OPEN_ROUTE -> RoutingRequestProtocol.openRouteService(

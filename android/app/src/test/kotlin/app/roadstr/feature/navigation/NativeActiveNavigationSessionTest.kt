@@ -279,6 +279,33 @@ class NativeActiveNavigationSessionTest {
         assertTrue(inbound.distanceMeters < 2.0)
     }
 
+    @Test
+    fun `progress follows the car between distant vertices instead of jumping vertex to vertex`() {
+        // A motorway polyline: vertices 3 km apart, so snapping to the nearest vertex moved
+        // the grey trail and the exit countdown in 1.5 km jumps.
+        val points = listOf(point(0.0), point(3_000.0), point(6_000.0))
+        val route = RoutingParsedRoute(
+            polyline = points,
+            steps = listOf(
+                step("Depart", "depart", points[0]),
+                step("Exit", "turn", points[2]),
+                step("Arrive", "arrive", points[2]),
+            ),
+            totalDistanceM = 6_000.0,
+            totalDurationS = 360.0,
+        )
+        val overlay = preparedOverlay(route, revision = 21)
+        val session = NativeActiveNavigationSession(NativeNavigationHudSession(), overlay)
+        assertTrue(session.startNavigation(21, route))
+
+        var sequence = 1L
+        for (northMeters in listOf(300.0, 420.0, 1_234.0, 2_050.0)) {
+            session.submitFix(sequence++, point(northMeters).toMapPoint(), 30.0, 0.0)
+            assertEquals(northMeters, session.state.value.progressMeters, 2.0)
+            assertEquals(northMeters, overlay.state.value.progressMeters, 2.0)
+        }
+    }
+
     private fun route(): RoutingParsedRoute {
         val points = listOf(point(0.0), point(100.0), point(200.0))
         return RoutingParsedRoute(

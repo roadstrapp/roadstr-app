@@ -1,7 +1,9 @@
 package app.roadstr.roadtest
 
+import app.roadstr.core.geo.GeoPoint
 import app.roadstr.core.network.NetworkResponseLimit
 import app.roadstr.core.network.NetworkTimeoutBudget
+import app.roadstr.core.network.RoadUTurnClassifier
 import app.roadstr.core.network.RoutingRequestProtocol
 import app.roadstr.core.network.SearchProviderProtocol
 import app.roadstr.core.network.SearchResponsePoint
@@ -16,6 +18,7 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sqrt
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Conservative OSM maxspeed lookup, matching main's throttled policy.
@@ -83,7 +86,59 @@ internal class NativeRoadTestSpeedLimitResolver(
             overpass(point)
         }
 
-    private suspend fun valhalla(point: SearchResponsePoint): Int? {
+    /**
+     * Whether the road under [point] is one where nobody may turn round (motorway, trunk, their ramps,
+     * motorroad, expressway), from OSM data: Valhalla's road class first, Overpass tags second.
+     * Null when neither answered, so the caller can tell "not a motorway" from "could not tell".
+     * One fresh lookup per call: it runs for a reroute, not along the trip.
+     */
+    suspend fun forbidsUTurn(point: SearchResponsePoint): Boolean? =
+        withTimeoutOrNull(UTURN_LOOKUP_TIMEOUT_MILLIS) {
+            try {
+                RoadUTurnClassifier.decide(
+                    RoadUTurnClassifier.parseValhallaLocate(valhallaLocateBody(point))
+                        ?: throw IOException("Valhalla locate: unexpected body"),
+                )
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                try {
+                    RoadUTurnClassifier.decide(
+                        RoadUTurnClassifier.parseOverpassWays(
+                            overpassWaysBody(point),
+                            GeoPoint(point.latitude, point.longitude),
+                        ) ?: throw IOException("Overpass: unexpected body"),
+                    )
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    null
+                }
+            }
+        }
+
+    private suspend fun valhallaLocateBody(point: SearchResponsePoint): String {
+        val response = transport.execute(valhallaLocateRequest(point), limits(NetworkResponseLimit.SmallJson))
+        if (response.statusCode != 200) throw IOException("Valhalla locate HTTP ${response.statusCode}")
+        return response.bodyUtf8
+    }
+
+    private suspend fun overpassWaysBody(point: SearchResponsePoint): String {
+        val query = "[out:json][timeout:5];way[highway][highway!~\"^(footway|path|cycleway|steps|pedestrian|" +
+            "bridleway|corridor|proposed|construction|platform)$\"]" +
+            "(around:$RADIUS_METERS,${coord(point.latitude)},${coord(point.longitude)});out tags geom;"
+        val endpoint = synchronized(lock) { OVERPASS_MIRRORS[mirror] }
+        val composed = SearchProviderProtocol.overpass(endpoint, query)
+        val request = NativeHttpRequest(NativeHttpMethod.Post, composed.uri, composed.headers, composed.body)
+        val response = transport.execute(request, limits(NetworkResponseLimit.AreaQuery))
+        if (response.statusCode != 200) {
+            synchronized(lock) { mirror = (mirror + 1) % OVERPASS_MIRRORS.size }
+            throw IOException("Overpass HTTP ${response.statusCode}")
+        }
+        return response.bodyUtf8
+    }
+
+    private fun valhallaLocateRequest(point: SearchResponsePoint): NativeHttpRequest {
         val body = String.format(
             Locale.ROOT,
             "{\"locations\":[{\"lat\":%.6f,\"lon\":%.6f,\"radius\":%d}],\"costing\":\"auto\",\"verbose\":true}",
@@ -91,12 +146,16 @@ internal class NativeRoadTestSpeedLimitResolver(
             point.longitude,
             RADIUS_METERS,
         )
-        val request = NativeHttpRequest(
+        return NativeHttpRequest(
             method = NativeHttpMethod.Post,
             uri = RoutingRequestProtocol.valhallaLocateEndpoint,
             headers = mapOf("Content-Type" to "application/json", "User-Agent" to "Roadstr/1.0"),
             body = body,
         )
+    }
+
+    private suspend fun valhalla(point: SearchResponsePoint): Int? {
+        val request = valhallaLocateRequest(point)
         val response = transport.execute(request, limits(NetworkResponseLimit.SmallJson))
         if (response.statusCode != 200) throw IOException("Valhalla locate HTTP ${response.statusCode}")
         val root = BoundedJsonParser(response.bodyUtf8).parse() as? List<*>
@@ -120,7 +179,7 @@ internal class NativeRoadTestSpeedLimitResolver(
     }
 
     private suspend fun overpass(point: SearchResponsePoint): Int? {
-        val query = "[out:json][timeout:5];way[highway~\"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|motorway_link|trunk_link|primary_link|secondary_link|tertiary_link)$\"](around:$RADIUS_METERS,${point.latitude},${point.longitude});out tags geom;"
+        val query = "[out:json][timeout:5];way[highway~\"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|motorway_link|trunk_link|primary_link|secondary_link|tertiary_link)$\"](around:$RADIUS_METERS,${coord(point.latitude)},${coord(point.longitude)});out tags geom;"
         val endpoint = synchronized(lock) { OVERPASS_MIRRORS[mirror] }
         val composed = SearchProviderProtocol.overpass(endpoint, query)
         val request = NativeHttpRequest(NativeHttpMethod.Post, composed.uri, composed.headers, composed.body)
@@ -178,6 +237,9 @@ internal class NativeRoadTestSpeedLimitResolver(
         return if (mph) (value * 1.60934).toInt() else value
     }
 
+    /** Plain decimals for Overpass: `toString()` can print 5.0E-5 near the equator or meridian, a syntax error. */
+    private fun coord(value: Double): String = String.format(Locale.ROOT, "%.7f", value)
+
     private fun limits(size: NetworkResponseLimit) =
         NativeHttpRequestLimits(NetworkTimeoutBudget.Standard.milliseconds, size.bytes)
 
@@ -198,6 +260,7 @@ internal class NativeRoadTestSpeedLimitResolver(
 
     private companion object {
         const val RADIUS_METERS = 60
+        const val UTURN_LOOKUP_TIMEOUT_MILLIS = 6_000L
         const val VALHALLA_UNLIMITED = 255
 
         /**

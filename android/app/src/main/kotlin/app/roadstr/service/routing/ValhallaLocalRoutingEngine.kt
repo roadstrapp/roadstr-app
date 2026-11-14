@@ -152,6 +152,13 @@ class ValhallaLocalRoutingEngine(
                 append(point.latitude)
                 append(",\"lon\":")
                 append(point.longitude)
+                val heading = request.originHeadingDegrees
+                if (index == 0 && heading != null && heading.isFinite()) {
+                    append(",\"heading\":")
+                    append(Math.floorMod(Math.round(heading), 360L))
+                    append(",\"heading_tolerance\":")
+                    append(request.originHeadingToleranceDegrees.coerceIn(0, 180))
+                }
                 append('}')
             }
             append("],\"costing\":\"auto\"")

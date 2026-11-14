@@ -1,0 +1,1 @@
+No U-turns on motorways when the route is recalculated: the new route carries on to the next exit. The grey trail and the distance to an exit now follow the car smoothly, and the distance counts down in round numbers. Search results keep the name of a business or place (name, street, town). "My location" is offered as the start even when the GPS fix arrives late.

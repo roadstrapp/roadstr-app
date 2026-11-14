@@ -566,6 +566,57 @@ class NativeRoutingServiceTest {
         servers += server
     }
 
+    @Test
+    fun `second answer without a U-turn widens the OSRM bearing window and never drops it`() = runBlocking {
+        val uris = mutableListOf<String>()
+        val service = NativeRoutingService(
+            NativeRoutingHttpTransport { request, _ ->
+                uris += request.uri
+                response(osrmBody(1_234.0))
+            },
+        )
+
+        // osrmBody heads north-east (about 35 degrees): it does not turn round for a car heading 40.
+        val routes = service.getRerouteRoutesWithoutUTurn(query(RoutingProvider.OSRM, bearing = 40.0))
+
+        assertEquals(1, routes.size)
+        assertEquals(1, uris.size)
+        assertTrue(uris.single(), uris.single().contains("bearings=40,90;"))
+    }
+
+    @Test
+    fun `second answer that still turns round is refused`() = runBlocking {
+        val service = NativeRoutingService(
+            NativeRoutingHttpTransport { _, _ -> response(osrmBody(1_234.0)) },
+        )
+        // Heading south-west: the same answer now points back the way the car came.
+        val failure = runCatching {
+            service.getRerouteRoutesWithoutUTurn(query(RoutingProvider.OSRM, bearing = 215.0))
+        }.exceptionOrNull() as NativeRoutingException
+        assertEquals(NativeRoutingFailureKind.UTurnRejected, failure.kind)
+    }
+
+    @Test
+    fun `providers without a bearing get no second request`() = runBlocking {
+        val calls = AtomicInteger()
+        val service = NativeRoutingService(
+            NativeRoutingHttpTransport { _, _ ->
+                calls.incrementAndGet()
+                response(graphHopperBody())
+            },
+        )
+        val failure = runCatching {
+            service.getRerouteRoutesWithoutUTurn(query(RoutingProvider.GRAPH_HOPPER, graphHopperServer = "https://gh.example", bearing = 40.0))
+        }.exceptionOrNull() as NativeRoutingException
+        assertEquals(NativeRoutingFailureKind.UTurnRejected, failure.kind)
+        assertEquals(0, calls.get())
+        val noHeading = runCatching {
+            service.getRerouteRoutesWithoutUTurn(query(RoutingProvider.OSRM))
+        }.exceptionOrNull() as NativeRoutingException
+        assertEquals(NativeRoutingFailureKind.UTurnRejected, noHeading.kind)
+        assertEquals(0, calls.get())
+    }
+
     private fun query(
         provider: RoutingProvider,
         apiKey: String? = null,

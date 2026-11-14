@@ -82,6 +82,20 @@ class ValhallaLocalRoutingEngineTest {
         assert(raw.contains("\"exclude_highways\":true"))
     }
 
+    @Test
+    fun `origin heading goes on the first location only, and only when given`() = runBlocking {
+        val factory = FakeFactory(SUCCESS)
+        val engine = ValhallaLocalRoutingEngine(factory)
+
+        engine.route(request())
+        engine.route(request().copy(originHeadingDegrees = 359.6, originHeadingToleranceDegrees = 90))
+
+        val (plain, directed) = factory.session.requests
+        assert(!plain.contains("heading"))
+        assert(directed.contains("{\"lat\":1.0,\"lon\":2.0,\"heading\":0,\"heading_tolerance\":90}")) { directed }
+        assert(directed.contains("{\"lat\":3.0,\"lon\":4.0}")) { directed }
+    }
+
     private fun request(version: Int = 1) = RoutingEngineRequest(
         origin = RoutingRequestPoint(1.0, 2.0),
         destination = RoutingRequestPoint(3.0, 4.0),

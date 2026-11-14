@@ -1060,7 +1060,8 @@ class NativeShellJourneyCoordinator(
         myLocationLabel: String,
         near: SearchResponsePoint?,
     ): SearchResponsePoint? {
-        if (gpsPoint != null && query.trim() == myLocationLabel.trim()) return gpsPoint
+        // “My location” is never a place name to look up: without a fix there is no answer.
+        if (query.trim() == myLocationLabel.trim()) return gpsPoint
         return gateway.search(
             query = query,
             near = near,

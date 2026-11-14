@@ -348,6 +348,29 @@ class NativeRoutePlanningSession(
         current.copy(originQuery = query(value), failure = null)
     }
 
+    /**
+     * Follows the GPS as it comes and goes while the planner is open. A planner opened before the
+     * first fix used to stay without the “my location” option (and with an empty start) for good;
+     * now the option appears with the fix, and a start left empty is filled with it once.
+     */
+    fun syncGps(hasGps: Boolean, localizedLabel: String): Boolean = synchronized(lock) {
+        val current = _state.value
+        if (current.status == NativeRoutePlanningStatus.Hidden || current.hasGps == hasGps) return false
+        _state.value = current.copy(
+            hasGps = hasGps,
+            originQuery = if (
+                hasGps &&
+                current.status == NativeRoutePlanningStatus.Planner &&
+                current.originQuery.isBlank()
+            ) {
+                query(localizedLabel)
+            } else {
+                current.originQuery
+            },
+        )
+        true
+    }
+
     fun useMyLocation(revision: Long, localizedLabel: String): Boolean = mutatePlanner(revision) { current ->
         if (!current.hasGps) return@mutatePlanner current
         current.copy(originQuery = query(localizedLabel))

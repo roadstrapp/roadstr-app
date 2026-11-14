@@ -158,6 +158,7 @@ object RoutingRequestProtocol {
         via: List<RoutingRequestPoint> = emptyList(),
         requestAlternatives: Boolean = false,
         originBearingDegrees: Double? = null,
+        originBearingToleranceDegrees: Int = rerouteBearingToleranceDegrees,
         endpoint: String? = null,
     ): RoutingProviderRequest {
         val stops = via.take(maxIntermediateWaypoints).map { point ->
@@ -172,7 +173,7 @@ object RoutingRequestProtocol {
             ""
         } else {
             val normalized = floorMod(dartRound(originBearingDegrees), 360L)
-            "&bearings=$normalized,$rerouteBearingToleranceDegrees;"
+            "&bearings=$normalized,$originBearingToleranceDegrees;"
         }
         val middle = if (stops.isEmpty()) "" else stops.joinToString(";") + ";"
         val uri = buildString {
