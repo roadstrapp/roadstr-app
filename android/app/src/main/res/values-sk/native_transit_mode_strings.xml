@@ -17,7 +17,7 @@
     <string name="native_transit_category_coach">Medzimestský autobus</string>
     <string name="native_transit_category_ferry">Trajekt</string>
     <string name="native_transit_category_air">Let</string>
-    <string name="native_transit_category_funicular">Lanovka na koľajniciach</string>
+    <string name="native_transit_category_funicular">Pozemná lanovka</string>
     <string name="native_transit_category_cable">Lanová doprava</string>
     <string name="native_transit_category_on_demand">Doprava na objednávku</string>
     <string name="native_transit_category_other">Verejná doprava</string>
