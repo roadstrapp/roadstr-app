@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_journey_title">Cesta s Roadstr</string>
+    <string name="native_journey_achievements">Úspechy</string>
+    <string name="native_journey_back">Späť</string>
+    <string name="native_journey_travelled">overená prejdená vzdialenosť</string>
+    <string name="native_journey_next_badge">Ďalší odznak: %1$s</string>
+    <string name="native_journey_all_unlocked">Nemožná cesta je vaša</string>
+    <string name="native_journey_trips">Jazdy</string>
+    <string name="native_journey_month">Tento mesiac</string>
+    <string name="native_journey_year">Tento rok</string>
+    <string name="native_journey_by_mode">Vzdialenosť podľa druhu dopravy</string>
+    <string name="native_journey_last_session">Posledná jazda</string>
+    <string name="native_journey_badges_count">Úspechy %1$d / %2$d</string>
+    <string name="native_journey_clear">Vymazať lokálnu históriu ciest</string>
+    <string name="native_journey_clear_confirm_title">Vymazať lokálnu históriu ciest?</string>
+    <string name="native_journey_clear_confirm_body">Týmto sa vynulujú lokálne štatistiky a úspechy. Už replikované udalosti Nostr môžu na relayoch zostať.</string>
+    <string name="native_journey_clear_confirm_action">Vymazať lokálne dáta</string>
+    <string name="native_journey_sync_title">Súkromná synchronizácia cez Nostr</string>
+    <string name="native_journey_sync_now">Synchronizovať teraz</string>
+    <string name="native_journey_sync_idle">Pripravené na synchronizáciu</string>
+    <string name="native_journey_sync_pending">Lokálne zmeny čakajú na synchronizáciu</string>
+    <string name="native_journey_syncing">Synchronizujem šifrované záznamy zariadení…</string>
+    <string name="native_journey_sync_success">Posledná úspešná synchronizácia: %1$s</string>
+    <string name="native_journey_sync_signer">Na synchronizáciu pripojte identitu Nostr.</string>
+    <string name="native_journey_sync_crypto">Aktívny podpisovateľ nepodporuje NIP-44. Nič sa nepublikovalo.</string>
+    <string name="native_journey_sync_error">Synchronizácia ciest zlyhala. Lokálne dáta sú v bezpečí.</string>
+    <string name="native_journey_sync_overlap">Počet prekrývajúcich sa jázd z rôznych zariadení, ktoré treba skontrolovať: %1$d. Automaticky sa nezlúčili.</string>
+    <string name="native_journey_unlocked">Odomknuté</string>
+    <string name="native_journey_locked">Zamknuté</string>
+    <string name="native_journey_unlocked_message">Úspech odomknutý: %1$s</string>
+    <string name="native_journey_public_badges_ready">Oficiálne odznaky Nostr sú voliteľné. Odomknutý odznak sa do vášho profilu pridá až na vašu žiadosť a po nájdení platného ocenenia od vydavateľa.</string>
+    <string name="native_journey_public_badges_unavailable">Oficiálne odznaky Nostr nie sú v tomto zostavení nastavené. Lokálne úspechy fungujú naplno.</string>
+    <string name="native_journey_public_badge_show">Zobraziť v profile Nostr</string>
+    <string name="native_journey_public_badge_checking">Overujem ocenenie od vydavateľa…</string>
+    <string name="native_journey_public_badge_publishing">Aktualizujem profil Nostr…</string>
+    <string name="native_journey_public_badge_published">Zobrazené v profile Nostr</string>
+    <string name="native_journey_public_badge_not_issued">Ocenenie zatiaľ nebolo udelené</string>
+    <string name="native_journey_public_badge_retry">Skúsiť znova zverejniť odznak</string>
+    <string name="native_journey_public_badge_signer">Pred zverejnením odznaku pripojte identitu Nostr.</string>
+    <string name="native_journey_mode_car">Auto</string>
+    <string name="native_journey_mode_motorcycle">Motocykel</string>
+    <string name="native_journey_mode_bicycle">Bicykel</string>
+    <string name="native_journey_mode_walking">Pešo</string>
+    <string name="native_journey_mode_transit">Verejná doprava</string>
+    <string name="native_journey_mode_other">Iné</string>
+</resources>

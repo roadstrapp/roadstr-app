@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_performance_section">Výkon a úspora energie</string>
+    <string name="native_performance_section_desc">Vyberte rovnováhu medzi plynulosťou mapy a výdržou batérie.</string>
+    <string name="native_performance_current">Aktuálny profil: %1$s</string>
+    <string name="native_performance_onboarding_title">Ako chcete používať Roadstr?</string>
+    <string name="native_performance_onboarding_desc">Vyberte úroveň výkonu, ktorá najlepšie sedí vášmu zariadeniu a preferenciám. Kedykoľvek ju zmeníte v Nastaveniach.</string>
+    <string name="native_performance_eco">Eko</string>
+    <string name="native_performance_balanced">Vyvážený</string>
+    <string name="native_performance_3d_eco">3D Eko</string>
+    <string name="native_performance_performance">Výkon</string>
+    <string name="native_performance_eco_desc">Maximálna výdrž batérie. Používa 2D mapu s až 30 FPS a obmedzuje animácie a zbytočné aktualizácie. Vhodné na dlhé cesty a menej výkonné zariadenia.</string>
+    <string name="native_performance_balanced_desc">Plynulá navigácia s miernou spotrebou energie. Používa 2D mapu s až 60 FPS. Vhodné pre telefóny strednej triedy.</string>
+    <string name="native_performance_3d_eco_desc">Optimalizovaná 3D navigácia. Používa MapLibre s až 45 FPS a častejšími ľahkými aktualizáciami. Vhodné na 3D bez trvalého maximálneho výkonu.</string>
+    <string name="native_performance_performance_desc">Maximálna plynulosť. Používa MapLibre s až 60 FPS a vysokofrekvenčnými ľahkými aktualizáciami. Vhodné pre výkonnejšie zariadenia.</string>
+    <string name="native_performance_engine_2d">Engine: 2D</string>
+    <string name="native_performance_engine_3d">Engine: MapLibre 3D</string>
+    <string name="native_performance_fps">Maximálna snímková frekvencia: %1$d FPS</string>
+    <string name="native_performance_gps_1hz">GPS: 1 Hz počas navigácie</string>
+    <string name="native_performance_gps_adaptive">GPS: 1 Hz, adaptívne až 2 Hz</string>
+    <string name="native_performance_gps_2hz">GPS: až 2 Hz počas navigácie</string>
+</resources>
