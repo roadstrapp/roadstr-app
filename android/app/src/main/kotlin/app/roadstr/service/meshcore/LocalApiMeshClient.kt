@@ -25,14 +25,16 @@ import okhttp3.WebSocketListener
 
 /**
  * The radio, through MeshCore Open's local API on this phone instead of this app's own BLE link,
- * so the chat app and Roadstr share one radio. Protocol: LOCAL_API.md in jooray/meshcore-open
- * (branch pr/local-api).
+ * so the chat app and Roadstr share one radio. Protocol 1 of the MeshCore Local API
+ * (SPEC.md in jooray/meshcore-local-api), which MeshCore Open and meshcored serve.
  *
  * One connection at a time, messages handled strictly in arrival order by one consumer. Pairing
- * proves this app's [identity] by signing `meshcore-open-pair-v1:<nonce>` once per connection; the
- * user approves the key in MeshCore Open the first time. After every approved `hello` the client
- * subscribes to `channel.data` of the shared channel again, asking for what was heard since the
- * last frame it processed (`receivedAt`, as the server stamped it).
+ * proves this app's [identity] by signing the challenge's `message` once per connection, and only
+ * when it is exactly `meshcore-local-api-pair-v1:<nonce>`; the user approves the key in MeshCore Open
+ * the first time. After every approved `hello` the client subscribes to `channel.data` of the shared
+ * channel again. Optional features are used only when the approved `hello` lists their capability:
+ * `since` (the `receivedAt` of the last frame processed) needs `replay`, and `channels.join` needs
+ * `channels_join`.
  *
  * A refused subscription keeps the socket: MeshCore Open pushes a `device` message whenever the
  * radio comes or goes or its channels change, and the client subscribes again on it (or after
@@ -256,6 +258,9 @@ class LocalApiMeshClient(
         private val inbox: Channel<Inbound>,
     ) {
         private var signed = false
+
+        /** Top-level `hello.capabilities`, read once from the approved `hello` and never changed. */
+        private var capabilities: Set<String> = emptySet()
         private var subscribeId: Long? = null
         private var joinId: Long? = null
         private var subscribed = false
@@ -310,15 +315,17 @@ class LocalApiMeshClient(
         }
 
         /**
-         * Signs the nonce, at most once per connection. The signed text is built here; a `message`
-         * the server suggests is never signed, so the key cannot be made to sign anything else.
+         * Signs the challenge's `message`, at most once per connection, and only when it is exactly
+         * the pairing prefix followed by a well-formed nonce, so the key cannot be made to sign
+         * anything else. Any other challenge (another protocol, an older server's prefix) ends the
+         * connection unsigned.
          */
         private fun challenge(message: Map<String, Any?>) {
             if (signed || authenticated) return
-            val nonce = (message["nonce"] as? String)?.takeIf { it.length in 1..MAX_NONCE } ?: return
+            val toSign = pairingMessage(message) ?: return incompatible("pairing challenge refused")
             signed = true
             setState(current, MeshCoreState.Handshaking)
-            val signature = identity.sign((PAIRING_PREFIX + nonce).toByteArray(Charsets.UTF_8))
+            val signature = identity.sign(toSign.toByteArray(Charsets.UTF_8))
             socket.send(
                 NostrJson.encode(
                     linkedMapOf("type" to "pair", "signature" to Base64.getEncoder().encodeToString(signature)),
@@ -326,9 +333,18 @@ class LocalApiMeshClient(
             )
         }
 
+        /** Not a server of this protocol: say so, close, and try again after the slow pause. */
+        private fun incompatible(reason: String) {
+            refused = MeshCoreProblem.ProtocolError
+            setState(current, MeshCoreState.Failed(MeshCoreProblem.ProtocolError, notApprovedRetryMillis))
+            socket.close(NORMAL_CLOSURE, reason)
+        }
+
         private fun approved(message: Map<String, Any?>) {
             if (!signed || authenticated) return
+            if ((message["protocol"] as? Number)?.toLong() != PROTOCOL.toLong()) return incompatible("unsupported protocol")
             authenticated = true
+            capabilities = (message["capabilities"] as? List<*>).orEmpty().filterIsInstance<String>().toSet()
             @Suppress("UNCHECKED_CAST")
             readDevice(message["device"] as? Map<String, Any?>)
             subscribe()
@@ -380,7 +396,9 @@ class LocalApiMeshClient(
                 "channel" to channelName(),
                 "dataTypes" to receiveDataTypes.toList(),
             )
-            runCatching { readCursor() }.getOrNull()?.takeIf { it.isNotBlank() }?.let { params["since"] = it }
+            if (CAPABILITY_REPLAY in capabilities) {
+                runCatching { readCursor() }.getOrNull()?.takeIf { it.isNotBlank() }?.let { params["since"] = it }
+            }
             val id = synchronized(lock) { ++nextId }
             subscribeId = id
             socket.send(NostrJson.encode(linkedMapOf("id" to id, "method" to "events.subscribe", "params" to params)))
@@ -426,8 +444,12 @@ class LocalApiMeshClient(
             }
         }
 
-        /** Once per connection, a valid hashtag name, and not within the pause after the user said no. */
+        /**
+         * Only a server with `channels_join`, once per connection, a valid hashtag name, and not
+         * within the pause after the user said no.
+         */
         private fun mayAskToJoin(): Boolean {
+            if (CAPABILITY_CHANNELS_JOIN !in capabilities) return false
             if (askedToJoin || !HASHTAG_CHANNEL.matches(channelName())) return false
             val deniedAt = synchronized(lock) { channelDeniedAt } ?: return true
             return clock() - deniedAt !in 0 until channelPromptPauseMillis
@@ -463,8 +485,8 @@ class LocalApiMeshClient(
                     askedToJoin = false
                     waitFor(MeshCoreProblem.LocalApiNoRadio)
                 }
-                // Too old to know the method, no free slot, a #roadstr with another key, another prompt
-                // open, no answer at all: the user adds the channel in MeshCore Open.
+                // No free slot, a #roadstr with another key, another prompt open, no answer at all:
+                // the user adds the channel in MeshCore Open.
                 else -> waitFor(MeshCoreProblem.LocalApiChannelMissing)
             }
         }
@@ -529,7 +551,10 @@ class LocalApiMeshClient(
 
         /** What MeshCore Open accepts in one `channel.sendData`: the BLE companion bound. */
         const val MAX_PAYLOAD = 163
-        const val PAIRING_PREFIX = "meshcore-open-pair-v1:"
+        const val PROTOCOL = 1
+        const val PAIRING_PREFIX = "meshcore-local-api-pair-v1:"
+        const val CAPABILITY_REPLAY = "replay"
+        const val CAPABILITY_CHANNELS_JOIN = "channels_join"
 
         /** MeshCore Open closes with this code when the user denied or revoked the app. */
         const val CLOSE_DENIED = 4003
@@ -538,7 +563,6 @@ class LocalApiMeshClient(
         private const val ABNORMAL_CLOSURE = 1006
         private const val INBOX_CAPACITY = 512
         private const val REQUEST_TIMEOUT_MILLIS = 15_000L
-        private const val MAX_NONCE = 128
         private const val MAX_NAME = 64
         private const val MAX_TIMESTAMP = 64
         private const val MAX_HOPS = 63
@@ -549,6 +573,20 @@ class LocalApiMeshClient(
 
         /** Far above any `hello`, `device` or `event` message, far below what could exhaust memory. */
         private const val MAX_MESSAGE_CHARS = 64 * 1024
+
+        /** The nonce pattern of the spec (section 5.4): base64url, 16 to 128 characters, optional padding. */
+        private val NONCE = Regex("^[A-Za-z0-9_-]{16,128}={0,2}$")
+
+        /**
+         * The text to sign for a `pairing.challenge`, or null when the challenge is not protocol 1 or
+         * its `message` is not exactly [PAIRING_PREFIX] followed by its own `nonce`.
+         */
+        internal fun pairingMessage(challenge: Map<String, Any?>): String? {
+            if ((challenge["protocol"] as? Number)?.toLong() != PROTOCOL.toLong()) return null
+            val nonce = (challenge["nonce"] as? String)?.takeIf { NONCE.matches(it) } ?: return null
+            val message = challenge["message"] as? String ?: return null
+            return message.takeIf { it == PAIRING_PREFIX + nonce }
+        }
 
         /** What `channels.join` accepts: MeshCore derives the key from the name, so none is sent. */
         private val HASHTAG_CHANNEL = Regex("^#[a-z0-9-]{1,31}$")
