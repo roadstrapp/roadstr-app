@@ -29,7 +29,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 
-/** The local API client against a simulated MeshCore Open (protocol 1 of LOCAL_API.md). */
+/** The local API client against a simulated MeshCore Open (protocol 1 of the MeshCore Local API spec). */
 class LocalApiMeshClientTest {
     private class TestIdentity : LocalApiIdentity {
         val pair = KeyPairGenerator.getInstance("EC").apply { initialize(ECGenParameterSpec("secp256r1")) }.generateKeyPair()
@@ -119,14 +119,19 @@ class LocalApiMeshClientTest {
     }
 
     /** Hello, challenge, pair and approval; returns the subscription request that follows. */
-    private fun approve(ws: WebSocket, nonce: String = "n0nce", device: Map<String, Any?> = linkedMapOf("name" to "T-Deck")): Map<String, Any?> {
+    private fun approve(
+        ws: WebSocket,
+        nonce: String = NONCE,
+        device: Map<String, Any?> = linkedMapOf("name" to "T-Deck"),
+        capabilities: List<String> = ALL_CAPABILITIES,
+    ): Map<String, Any?> {
         val hello = next()
         assertEquals("hello", hello["type"])
-        ws.json("type" to "pairing.challenge", "protocol" to 1, "nonce" to nonce, "known" to true)
+        ws.challenge(nonce)
         val pair = next()
         assertEquals("pair", pair["type"])
-        assertTrue(identity.verifies("meshcore-open-pair-v1:$nonce", pair["signature"] as String))
-        ws.json("type" to "hello", "protocol" to 1, "device" to device)
+        assertTrue(identity.verifies("meshcore-local-api-pair-v1:$nonce", pair["signature"] as String))
+        ws.json("type" to "hello", "protocol" to 1, "device" to device, "capabilities" to capabilities)
         val subscribe = next()
         assertEquals("events.subscribe", subscribe["method"])
         return subscribe
@@ -134,8 +139,8 @@ class LocalApiMeshClientTest {
 
     /** Hello, challenge, pair, approval and subscription; returns the subscription's params. */
     @Suppress("UNCHECKED_CAST")
-    private fun handshake(ws: WebSocket, nonce: String = "n0nce"): Map<String, Any?> {
-        val subscribe = approve(ws, nonce)
+    private fun handshake(ws: WebSocket, nonce: String = NONCE, capabilities: List<String> = ALL_CAPABILITIES): Map<String, Any?> {
+        val subscribe = approve(ws, nonce, capabilities = capabilities)
         ws.json("id" to subscribe["id"], "ok" to true, "result" to linkedMapOf("subscriptionId" to "s1"))
         return subscribe["params"] as Map<String, Any?>
     }
@@ -150,6 +155,10 @@ class LocalApiMeshClientTest {
         "device" to linkedMapOf("connected" to connected, "name" to "T-Deck"),
         "channels" to channels.mapIndexed { index, name -> linkedMapOf("index" to index, "name" to name, "isPublic" to false) },
     )
+
+    /** A challenge as the spec has it: `message` is the prefix followed by this nonce. */
+    private fun WebSocket.challenge(nonce: String = NONCE, message: String = "meshcore-local-api-pair-v1:$nonce") =
+        json("type" to "pairing.challenge", "protocol" to 1, "nonce" to nonce, "fingerprint" to "0000 0000 0000 0000", "message" to message)
 
     private fun problem(client: LocalApiMeshClient): MeshCoreProblem? = (client.state.value as? MeshCoreState.Failed)?.problem
 
@@ -169,7 +178,7 @@ class LocalApiMeshClientTest {
     }
 
     @Test
-    fun `pairing signs its own string, once, and never the server's message`() {
+    fun `pairing signs the challenge's message once, and only the spec's string`() {
         accept()
         val client = client()
         client.start()
@@ -180,15 +189,11 @@ class LocalApiMeshClientTest {
         assertEquals("Roadstr", hello["name"])
         assertEquals(Base64.getEncoder().encodeToString(identity.publicKey()), hello["publicKey"])
 
-        ws.json(
-            "type" to "pairing.challenge", "protocol" to 1, "nonce" to "abc", "known" to false,
-            "message" to "please sign this transfer",
-        )
+        ws.challenge(NONCE)
         val signature = next()["signature"] as String
-        assertTrue(identity.verifies("meshcore-open-pair-v1:abc", signature))
-        assertFalse(identity.verifies("please sign this transfer", signature))
+        assertTrue(identity.verifies("meshcore-local-api-pair-v1:$NONCE", signature))
 
-        ws.json("type" to "pairing.challenge", "protocol" to 1, "nonce" to "second", "message" to "meshcore-open-pair-v1:second")
+        ws.challenge("SecondNonce-0123456789")
         assertNull("a second challenge is ignored", inbox.poll(300, TimeUnit.MILLISECONDS))
         assertEquals(1, identity.signatures.get())
         client.stop()
@@ -330,7 +335,7 @@ class LocalApiMeshClientTest {
         client.start()
         val ws = socket()
         next()
-        ws.json("type" to "pairing.challenge", "protocol" to 1, "nonce" to "x", "known" to false)
+        ws.challenge()
         next()
         ws.close(4003, "pairing denied")
         eventually("not approved") {
@@ -364,7 +369,20 @@ class LocalApiMeshClientTest {
     }
 
     @Test
-    fun `a server without channels join leaves the channel to the user and retries after a minute`() {
+    fun `a server without channels_join is never asked, the channel is left to the user and retried after a minute`() {
+        accept()
+        val client = client()
+        client.start()
+        val ws = socket()
+        ws.unknownChannel(approve(ws, device = linkedMapOf("name" to "T-Deck", "connected" to true), capabilities = listOf("replay")))
+        eventually("channel missing") { problem(client) == MeshCoreProblem.LocalApiChannelMissing }
+        assertTrue(((client.state.value as MeshCoreState.Failed).retryInMillis ?: 0) >= 60_000)
+        quiet("no loop")
+        client.stop()
+    }
+
+    @Test
+    fun `a join that fails anyway leaves the channel to the user`() {
         accept()
         val client = client()
         client.start()
@@ -372,9 +390,8 @@ class LocalApiMeshClientTest {
         ws.unknownChannel(approve(ws))
         val join = next()
         assertEquals("channels.join", join["method"])
-        ws.json("id" to join["id"], "ok" to false, "error" to linkedMapOf("code" to "unknown_method", "message" to "?"))
+        ws.json("id" to join["id"], "ok" to false, "error" to linkedMapOf("code" to "no_free_slot", "message" to "?"))
         eventually("channel missing") { problem(client) == MeshCoreProblem.LocalApiChannelMissing }
-        assertTrue(((client.state.value as MeshCoreState.Failed).retryInMillis ?: 0) >= 60_000)
         quiet("no loop")
         client.stop()
     }
@@ -487,9 +504,12 @@ class LocalApiMeshClientTest {
         client.start()
         val ws = socket()
         next()
-        ws.json("type" to "pairing.challenge", "protocol" to 1, "nonce" to "x", "known" to true)
+        ws.challenge()
         next()
-        ws.json("type" to "hello", "protocol" to 1, "device" to linkedMapOf("name" to "", "connected" to false))
+        ws.json(
+            "type" to "hello", "protocol" to 1, "device" to linkedMapOf("name" to "", "connected" to false),
+            "capabilities" to ALL_CAPABILITIES,
+        )
         val subscribe = next()
         ws.unknownChannel(subscribe)
         eventually("no radio") {
@@ -524,5 +544,105 @@ class LocalApiMeshClientTest {
         assertEquals(MeshCoreState.Off, client.state.value)
         assertTrue(synchronized(states) { states.none { it is MeshCoreState.Failed } })
         assertFalse(client.ready)
+    }
+
+    @Test
+    fun `the pairing message is exactly the prefix and the challenge's own nonce`() {
+        fun challenge(nonce: Any?, message: Any?, protocol: Any? = 1L) =
+            linkedMapOf("type" to "pairing.challenge", "protocol" to protocol, "nonce" to nonce, "message" to message)
+        val prefix = "meshcore-local-api-pair-v1:"
+        assertEquals(prefix + NONCE, LocalApiMeshClient.pairingMessage(challenge(NONCE, prefix + NONCE)))
+        assertEquals("$prefix${NONCE}==", LocalApiMeshClient.pairingMessage(challenge("$NONCE==", "$prefix$NONCE==")))
+        // The prefix servers used before the spec.
+        assertNull(LocalApiMeshClient.pairingMessage(challenge(NONCE, "meshcore-open-pair-v1:$NONCE")))
+        // Another nonce, surrounding space, anything else to sign, no message at all.
+        assertNull(LocalApiMeshClient.pairingMessage(challenge(NONCE, prefix + "Other-nonce-0123456789")))
+        assertNull(LocalApiMeshClient.pairingMessage(challenge(NONCE, " $prefix$NONCE")))
+        assertNull(LocalApiMeshClient.pairingMessage(challenge(NONCE, "please sign this transfer")))
+        assertNull(LocalApiMeshClient.pairingMessage(challenge(NONCE, null)))
+        // A nonce too short, too long or outside base64url.
+        assertNull(LocalApiMeshClient.pairingMessage(challenge("short", prefix + "short")))
+        val long = "a".repeat(129)
+        assertNull(LocalApiMeshClient.pairingMessage(challenge(long, prefix + long)))
+        val odd = "n0nce/with+slash0"
+        assertNull(LocalApiMeshClient.pairingMessage(challenge(odd, prefix + odd)))
+        // Another protocol.
+        assertNull(LocalApiMeshClient.pairingMessage(challenge(NONCE, prefix + NONCE, protocol = 2L)))
+        assertNull(LocalApiMeshClient.pairingMessage(challenge(NONCE, prefix + NONCE, protocol = null)))
+    }
+
+    @Test
+    fun `a challenge with the old prefix is never signed, and the connection ends`() {
+        accept()
+        val client = client(retryBaseMillis = 5_000)
+        client.start()
+        val ws = socket()
+        assertEquals("hello", next()["type"])
+        ws.challenge(message = "meshcore-open-pair-v1:$NONCE")
+        eventually("refused as another protocol") { problem(client) == MeshCoreProblem.ProtocolError }
+        assertTrue(((client.state.value as MeshCoreState.Failed).retryInMillis ?: 0) >= 60_000)
+        quiet("no pair frame")
+        assertEquals(0, identity.signatures.get())
+        client.stop()
+    }
+
+    @Test
+    fun `without replay the subscription carries no since`() {
+        cursor = "2026-10-27T10:00:03Z"
+        accept()
+        val client = client()
+        client.start()
+        val params = handshake(socket(), capabilities = listOf("channels_join"))
+        assertFalse("since needs replay", "since" in params)
+        eventually("ready") { client.ready }
+        client.stop()
+
+        accept()
+        client.start()
+        assertEquals("2026-10-27T10:00:03Z", handshake(socket(), capabilities = listOf("replay"))["since"])
+        client.stop()
+    }
+
+    @Test
+    fun `capabilities come from the top level of hello only`() {
+        cursor = "2026-10-27T10:00:03Z"
+        accept()
+        val client = client()
+        client.start()
+        val ws = socket()
+        next()
+        ws.challenge()
+        next()
+        ws.json(
+            "type" to "hello", "protocol" to 1,
+            "device" to linkedMapOf("name" to "T-Deck", "connected" to true, "capabilities" to ALL_CAPABILITIES),
+        )
+        val subscribe = next()
+        @Suppress("UNCHECKED_CAST")
+        assertFalse("since" in (subscribe["params"] as Map<String, Any?>))
+        ws.unknownChannel(subscribe)
+        eventually("channel missing") { problem(client) == MeshCoreProblem.LocalApiChannelMissing }
+        quiet("no channels.join without the capability")
+        client.stop()
+    }
+
+    @Test
+    fun `an approved hello of another protocol ends the connection`() {
+        accept()
+        val client = client(retryBaseMillis = 5_000)
+        client.start()
+        val ws = socket()
+        next()
+        ws.challenge()
+        next()
+        ws.json("type" to "hello", "protocol" to 2, "device" to linkedMapOf("name" to "T-Deck"), "capabilities" to ALL_CAPABILITIES)
+        eventually("refused as another protocol") { problem(client) == MeshCoreProblem.ProtocolError }
+        quiet("no subscription")
+        client.stop()
+    }
+
+    private companion object {
+        const val NONCE = "d3zXMrhxhqHuEyHUe4MkXA"
+        val ALL_CAPABILITIES = listOf("contacts", "advert_send", "regions", "channels_join", "replay", "tx_path_data")
     }
 }

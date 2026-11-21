@@ -36,9 +36,9 @@ restated here.
 
 A MeshCore companion radio has one BLE connection. Instead of taking it over, Roadstr can use the
 radio through [MeshCore Open](https://github.com/jooray/meshcore-open/tree/pr/local-api), which
-keeps the connection and offers it to other apps on the same phone
-([LOCAL_API.md](https://github.com/jooray/meshcore-open/blob/pr/local-api/documentation/LOCAL_API.md),
-protocol 1).
+keeps the connection and offers it to other apps on the same phone through the MeshCore Local API
+([SPEC.md](https://github.com/jooray/meshcore-local-api/blob/main/SPEC.md), protocol 1; meshcored
+serves the same API).
 Opt-in: *Settings → MeshCore → Use the radio through MeshCore Open*; BLE stays the default, and a
 saved BLE radio is never switched over.
 
@@ -46,11 +46,18 @@ saved BLE radio is never switched over.
   `network_security_config.xml`).
 - **Pairing:** a P-256 key in the Android Keystore, generated on first use and never exportable.
   The client sends `hello` with the raw `x||y` key, and answers the first `pairing.challenge` of a
-  connection by signing `meshcore-open-pair-v1:<nonce>` itself (`SHA256withECDSA`, DER); it never
-  signs a string the server proposes. MeshCore Open asks the user once and shows the key's
+  connection by signing its `message` (`SHA256withECDSA`, DER), but only when the challenge is
+  protocol 1, the nonce is base64url of 16 to 128 characters and `message` is exactly
+  `meshcore-local-api-pair-v1:<nonce>`. Any other challenge, including the older
+  `meshcore-open-pair-v1:` prefix, is not signed: the connection is closed and retried after a
+  minute. MeshCore Open asks the user once and shows the key's
   fingerprint (first 64 bits of SHA-256 of `x||y`, as `AB12 CD34 5678 9ABC`); Roadstr shows the same
   fingerprint in its settings. A close with code 4003 (denied or revoked) is reported as "not
   allowed" and retried after a minute.
+- **Capabilities:** read once from the top-level `capabilities` array of the approved `hello`. A
+  feature whose capability is absent is never used: `since` needs `replay`, `channels.join` needs
+  `channels_join`. Roadstr sends no `region` or `path`, so it needs neither `regions` nor
+  `tx_path_data`.
 - **Traffic:** after every approved `hello`, `events.subscribe` for `channel.data` on `#roadstr` with
   `dataTypes` `[0x0150]`; frames are sent with `channel.sendData`, `dataType` `0x0150` (at
   most 163 bytes; see [Data type](#data-type)). Messages are handled one at a time, in order. The
@@ -65,17 +72,17 @@ saved BLE radio is never switched over.
   would deliver every frame twice. For servers that never send `device`, a refused subscription is
   retried after a minute on the same socket.
 - **Missing channel:** `events.subscribe` answers `unknown_channel` both when the channel is missing
-  and when no radio is connected; `device.connected` tells the two apart. With the radio connected,
-  Roadstr calls `channels.join` with `{"name": "#roadstr"}` once per connection (the key is derived
+  and when no radio is connected; `device.connected` tells the two apart. With the radio connected
+  and `channels_join` in the capabilities, Roadstr calls `channels.join` with `{"name": "#roadstr"}` once per connection (the key is derived
   from the name, so no secret is sent). MeshCore Open may ask the user, which takes up to two
   minutes, so this request waits 150 s and the link is kept up meanwhile, even with Roadstr in the
   background; settings say that MeshCore Open is waiting for the user. On success Roadstr
   subscribes. On `denied` (the user said no or did not answer) it shows "add #roadstr in MeshCore
   Open" and does not ask again for ten minutes, or until the user flips the MeshCore Open switch.
   `not_connected` waits for the radio; `invalid_params`, `no_free_slot`, `channel_conflict`,
-  `rate_limited`, `pairing_pending` or a server without the method leave the channel to the user.
+  `rate_limited`, `pairing_pending` or a server without `channels_join` leave the channel to the user.
   Another refusal of the subscription closes the socket and retries after a minute.
-- **Replay:** the subscription carries `since` = the `receivedAt` of the last frame processed, as
+- **Replay:** with `replay` in the capabilities, the subscription carries `since` = the `receivedAt` of the last frame processed, as
   the server stamped it. `since` is inclusive, so that frame comes back once and is dropped as a
   duplicate.
 
