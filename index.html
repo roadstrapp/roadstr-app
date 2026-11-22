@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark-nostr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roadstr — Decentralised Navigation on Nostr &amp; OpenStreetMap</title>
+  <meta name="description" content="Open-source, privacy-first turn-by-turn GPS navigation for Android. Powered by OpenStreetMap, Nostr road events, on-device AI voice guidance, offline maps, public transport, and Lightning zaps.">
+  <meta name="theme-color" content="#0D0D1A">
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://roadstrapp.github.io/roadstr-app/">
+  <meta property="og:title" content="Roadstr — Decentralised Navigation on Nostr &amp; OpenStreetMap">
+  <meta property="og:description" content="Open-source turn-by-turn navigation for Android with Nostr community road alerts, on-device AI voice, downloadable offline maps, and Lightning zaps. No accounts, no tracking.">
+  <meta property="og:image" content="https://roadstrapp.github.io/roadstr-app/assets/og_icon.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Roadstr — Decentralised Navigation on Nostr">
+  <meta name="twitter:description" content="Open-source, privacy-first GPS navigation for Android built on Nostr, OpenStreetMap, MapLibre Native, and Bitcoin Lightning.">
+  <meta name="twitter:image" content="https://roadstrapp.github.io/roadstr-app/assets/og_icon.png">
+
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="apple-touch-icon" href="assets/app_icon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Ambient Roadstr Backdrop (inspired by RoadstrScreenBackground & app icon) -->
+  <div class="ambient-backdrop" aria-hidden="true">
+    <div class="ambient-orb ambient-orb-top"></div>
+    <div class="ambient-orb ambient-orb-bottom"></div>
+    <div class="ambient-orb ambient-orb-secondary"></div>
+    <svg class="road-network-bg" viewBox="0 0 1440 900" fill="none" preserveAspectRatio="xMidYMid slice">
+      <g class="road-lines" stroke-width="1.2">
+        <path d="M-80 220 C 260 120, 480 420, 820 260 S 1260 60, 1540 240" />
+        <path d="M-40 680 C 310 560, 520 790, 910 580 S 1280 490, 1520 650" />
+        <path d="M210 -60 C 340 260, 120 510, 410 940" />
+        <path d="M1080 -80 C 960 220, 1240 460, 1020 960" />
+        <path d="M640 -40 C 690 290, 580 540, 740 950" />
+        <circle cx="820" cy="260" r="18" />
+        <circle cx="820" cy="260" r="6" />
+        <circle cx="410" cy="520" r="14" />
+        <circle cx="1095" cy="410" r="22" />
+      </g>
+      <!-- Animated glowing route path -->
+      <path id="hero-route-glow" class="route-pulse-glow" d="M-60 760 C 260 630, 390 420, 680 390 C 920 365, 1040 190, 1500 130" />
+      <path id="hero-route-line" class="route-pulse-line" d="M-60 760 C 260 630, 390 420, 680 390 C 920 365, 1040 190, 1500 130" />
+      <path class="route-dashes" d="M-60 760 C 260 630, 390 420, 680 390 C 920 365, 1040 190, 1500 130" />
+    </svg>
+  </div>
+
+  <!-- Floating Glass Navbar -->
+  <header class="navbar-wrap">
+    <nav class="navbar glass-surface" aria-label="Main navigation">
+      <a href="#top" class="brand">
+        <img src="assets/app_icon.png" alt="Roadstr icon" class="brand-icon" width="38" height="38">
+        <span class="brand-name">Roadstr</span>
+        <span class="version-pill">v1.4.0</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#features" data-i18n="nav.features">Features</a></li>
+        <li><a href="#events" data-i18n="nav.events">Road Events</a></li>
+        <li><a href="#screenshots" data-i18n="nav.screenshots">Screens</a></li>
+        <li><a href="#privacy" data-i18n="nav.privacy">Privacy</a></li>
+        <li><a href="#protocols" data-i18n="nav.protocols">Nostr</a></li>
+        <li><a href="#download" data-i18n="nav.download">Download</a></li>
+      </ul>
+
+      <div class="nav-controls">
+        <!-- Official Roadstr 4-Theme Switcher -->
+        <div class="theme-switcher" role="group" aria-label="Roadstr theme switcher">
+          <button type="button" class="accent-btn active" data-accent="nostr" title="Nostr Violet (#8B5CF6)" aria-label="Nostr Violet theme">
+            <span class="swatch swatch-nostr"></span>
+          </button>
+          <button type="button" class="accent-btn" data-accent="bitcoin" title="Bitcoin Orange (#F7931A)" aria-label="Bitcoin Orange theme">
+            <span class="swatch swatch-bitcoin"></span>
+          </button>
+          <span class="switcher-sep" aria-hidden="true"></span>
+          <button type="button" class="mode-btn" id="mode-toggle" title="Toggle Dark / Light mode" aria-label="Toggle Dark or Light mode">
+            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
+        </div>
+
+        <button type="button" class="lang-btn" id="lang-toggle" title="Switch language EN / IT" aria-label="Switch language">EN</button>
+
+        <a href="#download" class="btn-accent btn-sm nav-cta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span data-i18n="nav.getApp">Get APK</span>
+        </a>
+
+        <button type="button" class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Mobile drawer -->
+    <div class="mobile-drawer glass-surface" id="mobile-drawer" hidden>
+      <a href="#features" data-i18n="nav.features">Features</a>
+      <a href="#events" data-i18n="nav.events">Road Events</a>
+      <a href="#screenshots" data-i18n="nav.screenshots">Screens</a>
+      <a href="#privacy" data-i18n="nav.privacy">Privacy</a>
+      <a href="#protocols" data-i18n="nav.protocols">Nostr</a>
+      <a href="#download" data-i18n="nav.download">Download</a>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- HERO SECTION -->
+    <section class="hero container">
+      <div class="hero-copy reveal">
+        <div class="hero-badge glass-pill">
+          <span class="pulse-dot"></span>
+          <span data-i18n="hero.badge">v1.4.0 · Native Kotlin · MIT Open Source · Android</span>
+        </div>
+
+        <h1 class="hero-title">
+          <span data-i18n="hero.titleLead">Navigate freely.</span><br>
+          <span class="gradient-text" data-i18n="hero.titleAccent">Powered by Nostr &amp; OpenStreetMap.</span>
+        </h1>
+
+        <p class="hero-subtitle" data-i18n="hero.subtitle">
+          Open-source, decentralised turn-by-turn GPS navigation for Android. Real-time community road alerts over Nostr, on-device AI voice guidance, downloadable offline maps, worldwide public transport, and Lightning zaps — with zero accounts, zero tracking, and zero Google Play Services.
+        </p>
+
+        <div class="hero-actions">
+          <a href="https://github.com/roadstrapp/roadstr-app/releases/download/v1.4.0/app-arm64-v8a-release.apk" class="btn-accent btn-lg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span data-i18n="hero.downloadCta">Download v1.4.0 APK</span>
+          </a>
+          <a href="https://github.com/roadstrapp/roadstr-app" target="_blank" rel="noopener noreferrer" class="btn-glass btn-lg">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            <span data-i18n="hero.githubCta">View Source</span>
+          </a>
+        </div>
+
+        <div class="hero-metrics">
+          <div class="metric-chip glass-surface">
+            <strong>27</strong>
+            <span data-i18n="hero.metricLang">Languages</span>
+          </div>
+          <div class="metric-chip glass-surface">
+            <strong>34k+</strong>
+            <span data-i18n="hero.metricOffline">Offline Cities</span>
+          </div>
+          <div class="metric-chip glass-surface">
+            <strong>0</strong>
+            <span data-i18n="hero.metricTrackers">Trackers &amp; Accounts</span>
+          </div>
+          <div class="metric-chip glass-surface">
+            <strong>MIT</strong>
+            <span data-i18n="hero.metricLicense">Open Source</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Phone Showcase -->
+      <div class="hero-visual reveal">
+        <div class="phone-stage">
+          <!-- Floating HUD cards around the phone -->
+          <div class="float-chip float-chip-1 glass-surface" id="float-chip-1">
+            <img src="assets/road_events/speed_camera.png" alt="Speed camera event" width="28" height="28">
+            <div>
+              <span class="chip-kicker">Nostr · kind 1315</span>
+              <strong data-i18n="hero.chip1">Speed camera ahead</strong>
+            </div>
+          </div>
+
+          <div class="float-chip float-chip-2 glass-surface" id="float-chip-2">
+            <span class="chip-icon-bolt">⚡</span>
+            <div>
+              <span class="chip-kicker">Lightning · NIP-57</span>
+              <strong data-i18n="hero.chip2">Zap reporters via NWC</strong>
+            </div>
+          </div>
+
+          <div class="float-chip float-chip-3 glass-surface" id="float-chip-3">
+            <span class="chip-icon-wave">🎙</span>
+            <div>
+              <span class="chip-kicker">Kokoro-82M · ONNX</span>
+              <strong data-i18n="hero.chip3">100% On-Device AI Voice</strong>
+            </div>
+          </div>
+
+          <!-- Phone Frame -->
+          <div class="phone-frame">
+            <div class="phone-notch" aria-hidden="true"></div>
+            <div class="phone-screen" id="hero-phone-screen">
+              <img src="assets/screenshots/03-navigation.jpg" alt="Roadstr turn-by-turn navigation along Viale Aventino in Rome" class="phone-img active" data-screen="0">
+              <img src="assets/screenshots/01-map.jpg" alt="Roadstr MapLibre map centred on the Colosseum" class="phone-img" data-screen="1">
+              <img src="assets/screenshots/02-route.jpg" alt="Roadstr route options from Colosseum to St. Peter's Basilica" class="phone-img" data-screen="2">
+              <img src="assets/screenshots/04-place.jpg" alt="Roadstr place card for St. Peter's Basilica with Wikipedia reader" class="phone-img" data-screen="3">
+            </div>
+          </div>
+
+          <!-- Screen selector pills -->
+          <div class="phone-tabs glass-surface" role="tablist" aria-label="App screen preview">
+            <button type="button" class="phone-tab active" data-target="0" role="tab" aria-selected="true" data-i18n="screens.tabNav">Guidance</button>
+            <button type="button" class="phone-tab" data-target="1" role="tab" aria-selected="false" data-i18n="screens.tabMap">Map</button>
+            <button type="button" class="phone-tab" data-target="2" role="tab" aria-selected="false" data-i18n="screens.tabRoute">Route</button>
+            <button type="button" class="phone-tab" data-target="3" role="tab" aria-selected="false" data-i18n="screens.tabPlace">Place</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- THEME PREVIEW BANNER (Authentic Roadstr 4-Theme Experience) -->
+    <section class="theme-strip container reveal">
+      <div class="theme-strip-card glass-surface">
+        <div class="theme-strip-text">
+          <span class="theme-tag" id="active-theme-label">Dark · Nostr Violet (#8B5CF6)</span>
+          <p data-i18n="themeStrip.desc">Roadstr ships with four built-in palettes — Nostr Violet &amp; Bitcoin Orange in Light and Dark — plus solar auto dark mode via NOAA sunrise/sunset calculation. Try them live:</p>
+        </div>
+        <div class="theme-pill-group">
+          <button type="button" class="theme-preset-btn active" data-preset="dark-nostr">
+            <span class="preset-dot" style="background:#8B5CF6"></span>
+            <span data-i18n="themeStrip.darkNostr">Dark · Violet</span>
+          </button>
+          <button type="button" class="theme-preset-btn" data-preset="dark-bitcoin">
+            <span class="preset-dot" style="background:#F7931A"></span>
+            <span data-i18n="themeStrip.darkBitcoin">Dark · Bitcoin</span>
+          </button>
+          <button type="button" class="theme-preset-btn" data-preset="light-nostr">
+            <span class="preset-dot" style="background:#8B5CF6; box-shadow:0 0 0 2px #fff inset"></span>
+            <span data-i18n="themeStrip.lightNostr">Light · Violet</span>
+          </button>
+          <button type="button" class="theme-preset-btn" data-preset="light-bitcoin">
+            <span class="preset-dot" style="background:#F7931A; box-shadow:0 0 0 2px #fff inset"></span>
+            <span data-i18n="themeStrip.lightBitcoin">Light · Bitcoin</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- BENTO FEATURES SECTION -->
+    <section id="features" class="section container">
+      <div class="section-header reveal">
+        <div class="section-kicker">
+          <span class="section-pill-bar"></span>
+          <span data-i18n="features.kicker">ENGINEERED FOR SOVEREIGN NAVIGATION</span>
+          <span class="section-divider"></span>
+        </div>
+        <h2 class="section-title" data-i18n="features.title">Everything you expect from a modern navigator. None of the surveillance.</h2>
+      </div>
+
+      <div class="bento-grid">
+        <!-- Card 1: Large Turn-by-Turn & Offline Maps -->
+        <article class="bento-card bento-span-2 glass-surface reveal">
+          <div class="card-icon-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          </div>
+          <div class="bento-tags">
+            <span class="mini-tag">MapLibre Native</span>
+            <span class="mini-tag">Valhalla Offline</span>
+            <span class="mini-tag">Shortbread MBTiles</span>
+          </div>
+          <h3 data-i18n="features.f1Title">Native 3D Navigation &amp; Offline Maps</h3>
+          <p data-i18n="features.f1Desc">Built in native Kotlin with Jetpack Compose and MapLibre Native. Enjoy 3D tilt, speed-adaptive zoom, foreground screen-off guidance, motorway U-turn prevention on reroute, live OSM speed limits, and ZTL / limited-traffic warnings. Download verified Geofabrik Shortbread MBTiles and route offline with the on-device Valhalla engine across 34,000+ indexed cities.</p>
+          <div class="provider-row">
+            <span>OSRM</span>
+            <span>GraphHopper</span>
+            <span>OpenRouteService</span>
+            <span>Valhalla</span>
+            <span>Open-Meteo</span>
+          </div>
+        </article>
+
+        <!-- Card 2: Nostr Road Events -->
+        <article class="bento-card glass-surface reveal">
+          <div class="card-icon-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg>
+          </div>
+          <div class="bento-tags">
+            <span class="mini-tag">kind 1315 / 1316</span>
+            <span class="mini-tag">Roadbeacon</span>
+          </div>
+          <h3 data-i18n="features.f2Title">Decentralised Road Alerts</h3>
+          <p data-i18n="features.f2Desc">Publish and verify hazards, speed cameras, traffic jams, and road closures as signed Nostr events. Shared format with Roadbeacon, vote-weighted duration, owner-signed corrections (kind 1317), and experimental MeshCore LoRa radio support for off-grid alerts.</p>
+        </article>
+
+        <!-- Card 3: On-Device AI Voice & Speech -->
+        <article class="bento-card glass-surface reveal">
+          <div class="card-icon-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+          </div>
+          <div class="bento-tags">
+            <span class="mini-tag">Kokoro-82M</span>
+            <span class="mini-tag">Piper</span>
+            <span class="mini-tag">Parakeet STT</span>
+          </div>
+          <h3 data-i18n="features.f3Title">100% On-Device AI Voice</h3>
+          <p data-i18n="features.f3Desc">Natural neural voice guidance powered locally by Kokoro-82M (7 languages) and Piper Thorsten-Voice (German) via ONNX Runtime + eSpeak NG. Plus experimental offline voice search with NVIDIA Parakeet TDT 0.6B v3 across 25 languages — no audio ever leaves your phone.</p>
+        </article>
+
+        <!-- Card 4: Lightning Zaps -->
+        <article class="bento-card glass-surface reveal">
+          <div class="card-icon-badge icon-bitcoin">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div class="bento-tags">
+            <span class="mini-tag">NIP-57 Zaps</span>
+            <span class="mini-tag">NIP-47 NWC</span>
+          </div>
+          <h3 data-i18n="features.f4Title">Bitcoin Lightning Tips</h3>
+          <p data-i18n="features.f4Desc">Reward drivers who report hazards on time with instant Bitcoin Lightning zaps. Connect Alby Hub, Mutiny, or Cashu NWC via Nostr Wallet Connect (preferring NIP-44 v2 encryption), or pay via any installed Lightning wallet.</p>
+        </article>
+
+        <!-- Card 5: Public Transport -->
+        <article class="bento-card glass-surface reveal">
+          <div class="card-icon-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="3" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="m8 19-2 3"/><path d="m18 22-2-3"/><path d="M8 15h.01"/><path d="M16 15h.01"/></svg>
+          </div>
+          <div class="bento-tags">
+            <span class="mini-tag">Transitous</span>
+            <span class="mini-tag">Entur</span>
+          </div>
+          <h3 data-i18n="features.f5Title">Worldwide Public Transit</h3>
+          <p data-i18n="features.f5Desc">Multimodal public-transport routing powered by open Transitous feeds worldwide and Entur in Norway. Browse live departure boards, compare saved journeys, and keep offline snapshots of itineraries with zero proprietary API keys.</p>
+        </article>
+
+        <!-- Card 6: Plain-language Search, Explore & Journey -->
+        <article class="bento-card bento-span-2 glass-surface reveal">
+          <div class="card-icon-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
+          </div>
+          <div class="bento-tags">
+            <span class="mini-tag">Explore</span>
+            <span class="mini-tag">Plain-Language Search</span>
+            <span class="mini-tag">Journey · 17 Badges</span>
+            <span class="mini-tag">Speedometer HUD</span>
+          </div>
+          <h3 data-i18n="features.f6Title">Explore, Smart Search &amp; Opt-In Journey</h3>
+          <p data-i18n="features.f6Desc">Search naturally for <em>"pharmacy open now"</em> or <em>"EV chargers along the route"</em> using a deterministic local parser over OpenStreetMap — plus optional self-chosen SearXNG web results and an in-app Wikipedia reader. Browse categories in Explore, pick from 5 Speedometer HUD styles, and optionally track validated distance milestones with 17 Journey achievements stored strictly on-device.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- INTERACTIVE ROAD EVENTS & CUSTOM CURSORS -->
+    <section id="events" class="section container">
+      <div class="section-header reveal">
+        <div class="section-kicker">
+          <span class="section-pill-bar"></span>
+          <span data-i18n="events.kicker">COMMUNITY INTELLIGENCE · NOSTR KIND 1315</span>
+          <span class="section-divider"></span>
+        </div>
+        <h2 class="section-title" data-i18n="events.title">Illustrated road alerts shared across Nostr &amp; Roadbeacon</h2>
+        <p class="section-lead" data-i18n="events.lead">Click any road-event category to inspect its signed Nostr kind-1315 event structure. Every report is cryptographically verified before appearing on your map.</p>
+      </div>
+
+      <div class="events-showcase reveal">
+        <div class="events-grid" id="events-grid" role="listbox" aria-label="Road event categories">
+          <!-- Populated dynamically / enhanced by app.js, with static fallback structure -->
+        </div>
+
+        <div class="event-inspector glass-surface">
+          <div class="inspector-top">
+            <div class="inspector-title-row">
+              <img id="inspector-icon" src="assets/road_events/speed_camera.png" alt="Selected road event" width="48" height="48">
+              <div>
+                <span class="inspector-kind">Nostr Event · kind 1315</span>
+                <h3 id="inspector-name">Speed Camera</h3>
+              </div>
+            </div>
+            <span class="inspector-transport" id="inspector-transport">Relays + MeshCore LoRa</span>
+          </div>
+
+          <p class="inspector-desc" id="inspector-desc">Community-reported fixed or mobile speed camera. Community confirmations (kind 1316) extend its lifespan; dismissals retire it early.</p>
+
+          <pre class="code-block"><code id="inspector-json"></code></pre>
+
+          <div class="inspector-foot">
+            <span class="verify-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+              <span data-i18n="events.sigVerified">BIP-340 Schnorr signature verified locally</span>
+            </span>
+            <a href="https://github.com/jooray/roadbeacon/blob/main/nips/road-events.md" target="_blank" rel="noopener noreferrer" class="text-link" data-i18n="events.specLink">Read shared spec ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customisable Vehicle & Ostrich Cursor Strip -->
+      <div class="cursor-showcase glass-surface reveal">
+        <div class="cursor-header">
+          <div>
+            <span class="mini-tag" data-i18n="cursors.kicker">CUSTOM VEHICLE CURSORS</span>
+            <h3 data-i18n="cursors.title">Make the map yours — from Classic 500 to the Nostr Ostrich</h3>
+          </div>
+          <span class="cursor-fps-badge">30 fps battery-smart rendering</span>
+        </div>
+
+        <div class="cursor-stage">
+          <div class="cursor-road-preview">
+            <svg viewBox="0 0 500 90" fill="none" class="mini-road-svg" aria-hidden="true">
+              <path d="M10 68 C 140 20, 340 85, 490 26" class="mini-road-outer" stroke-width="26" stroke-linecap="round"/>
+              <path d="M10 68 C 140 20, 340 85, 490 26" class="mini-road-dash" stroke-width="2.5" stroke-dasharray="10 12" stroke-linecap="round"/>
+            </svg>
+            <img id="active-cursor-sprite" src="assets/cursors/ostrich.png" alt="Active vehicle cursor" class="active-cursor-sprite">
+            <span class="active-cursor-name" id="active-cursor-name">Nostr Ostrich (Walking)</span>
+          </div>
+
+          <div class="cursor-picker" id="cursor-picker">
+            <button type="button" class="cursor-opt active" data-cursor="ostrich" data-label="Nostr Ostrich (Walking)">
+              <img src="assets/cursors/ostrich.png" alt="Nostr Ostrich cursor" width="36" height="36">
+            </button>
+            <button type="button" class="cursor-opt" data-cursor="racing" data-label="Racing GT">
+              <img src="assets/cursors/racing.png" alt="Racing cursor" width="36" height="36">
+            </button>
+            <button type="button" class="cursor-opt" data-cursor="electric" data-label="Electric EV">
+              <img src="assets/cursors/electric.png" alt="Electric cursor" width="36" height="36">
+            </button>
+            <button type="button" class="cursor-opt" data-cursor="classic500" data-label="Classic 500">
+              <img src="assets/cursors/classic500.png" alt="Classic 500 cursor" width="36" height="36">
+            </button>
+            <button type="button" class="cursor-opt" data-cursor="formula1" data-label="Formula 1">
+              <img src="assets/cursors/formula1.png" alt="Formula 1 cursor" width="36" height="36">
+            </button>
+            <button type="button" class="cursor-opt" data-cursor="suv" data-label="SUV">
+              <img src="assets/cursors/suv.png" alt="SUV cursor" width="36" height="36">
+            </button>
+            <button type="button" class="cursor-opt" data-cursor="city" data-label="City Car">
+              <img src="assets/cursors/city.png" alt="City car cursor" width="36" height="36">
+            </button>
+            <button type="button" class="cursor-opt" data-cursor="bicycle" data-label="Bicycle">
+              <img src="assets/cursors/bicycle.png" alt="Bicycle cursor" width="36" height="36">
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREENSHOTS GALLERY -->
+    <section id="screenshots" class="section container">
+      <div class="section-header reveal">
+        <div class="section-kicker">
+          <span class="section-pill-bar"></span>
+          <span data-i18n="screens.kicker">REAL DEVICE SCREENSHOTS · ROME</span>
+          <span class="section-divider"></span>
+        </div>
+        <h2 class="section-title" data-i18n="screens.title">Clean glass chrome that stays out of the road's way</h2>
+      </div>
+
+      <div class="screenshots-grid">
+        <figure class="shot-card glass-surface reveal" data-lightbox="0">
+          <div class="shot-img-wrap">
+            <img src="assets/screenshots/01-map.jpg" alt="Roadstr map screen at the Colosseum" loading="lazy">
+          </div>
+          <figcaption>
+            <strong data-i18n="screens.s1Title">Map &amp; Quick Navigate</strong>
+            <span data-i18n="screens.s1Desc">MapLibre Native vector map with custom cursor and floating glass controls.</span>
+          </figcaption>
+        </figure>
+
+        <figure class="shot-card glass-surface reveal" data-lightbox="1">
+          <div class="shot-img-wrap">
+            <img src="assets/screenshots/02-route.jpg" alt="Route options from Colosseum to St. Peter's Basilica" loading="lazy">
+          </div>
+          <figcaption>
+            <strong data-i18n="screens.s2Title">Multi-Modal Route Planner</strong>
+            <span data-i18n="screens.s2Desc">Car, bike, walking, and transit alternatives with live Open-Meteo route weather.</span>
+          </figcaption>
+        </figure>
+
+        <figure class="shot-card glass-surface reveal" data-lightbox="2">
+          <div class="shot-img-wrap">
+            <img src="assets/screenshots/03-navigation.jpg" alt="Turn-by-turn navigation HUD along Viale Aventino" loading="lazy">
+          </div>
+          <figcaption>
+            <strong data-i18n="screens.s3Title">Turn-by-Turn HUD</strong>
+            <span data-i18n="screens.s3Desc">Crisp manoeuvre tiles, live speed-limit sign, custom speedometer, and one-tap event reporting.</span>
+          </figcaption>
+        </figure>
+
+        <figure class="shot-card glass-surface reveal" data-lightbox="3">
+          <div class="shot-img-wrap">
+            <img src="assets/screenshots/04-place.jpg" alt="Place card for St. Peter's Basilica" loading="lazy">
+          </div>
+          <figcaption>
+            <strong data-i18n="screens.s4Title">Rich OSM Place Cards</strong>
+            <span data-i18n="screens.s4Desc">Contextual OSM details, EV/Bitcoin/parking metadata, and restricted in-app Wikipedia reader.</span>
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- PRIVACY & SECURITY SECTION -->
+    <section id="privacy" class="section container">
+      <div class="section-header reveal">
+        <div class="section-kicker">
+          <span class="section-pill-bar"></span>
+          <span data-i18n="privacy.kicker">PRIVACY BY ARCHITECTURE · RADICAL HONESTY</span>
+          <span class="section-divider"></span>
+        </div>
+        <h2 class="section-title" data-i18n="privacy.title">Your keys never touch Roadstr. Your trips never fund an ad network.</h2>
+      </div>
+
+      <div class="privacy-grid">
+        <div class="privacy-card glass-surface reveal">
+          <div class="privacy-icon">🔐</div>
+          <h3 data-i18n="privacy.p1Title">Zero Private Keys in the App</h3>
+          <p data-i18n="privacy.p1Desc">Roadstr intentionally removed pasted <code>nsec</code> login. Authenticate exclusively through <strong>Amber (NIP-55)</strong> or a remote <strong>Bunker (NIP-46)</strong> so your signing key stays isolated outside the app.</p>
+        </div>
+
+        <div class="privacy-card glass-surface reveal">
+          <div class="privacy-icon">🛡</div>
+          <h3 data-i18n="privacy.p2Title">NIP-44 End-to-End Sync</h3>
+          <p data-i18n="privacy.p2Desc">Saved places and your parking spot stay local-only by default. If you enable cross-device sync or Journey shards over Nostr, payloads are encrypted with <strong>NIP-44 v2</strong> to your own key — relays see only ciphertext.</p>
+        </div>
+
+        <div class="privacy-card glass-surface reveal">
+          <div class="privacy-icon">📡</div>
+          <h3 data-i18n="privacy.p3Title">Zero Google Play Services</h3>
+          <p data-i18n="privacy.p3Desc">Reads GPS directly from Android's native <code>LocationManager</code>. Runs seamlessly on GrapheneOS, CalyxOS, LineageOS, and any degoogled Android device with zero analytics or telemetry SDKs.</p>
+        </div>
+
+        <div class="privacy-card glass-surface reveal">
+          <div class="privacy-icon">🧭</div>
+          <h3 data-i18n="privacy.p4Title">Honest Threat Model</h3>
+          <p data-i18n="privacy.p4Desc">Roadstr runs no first-party servers. Online routing, Overpass lookups, Transitous, and weather send anonymous requests without persistent IDs. Use offline maps or a VPN if you want to hide IP-linked coordinates — and remember public Nostr/LoRa reports are pseudonymous, not anonymous.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOSTR PROTOCOLS & OPEN STACK -->
+    <section id="protocols" class="section container">
+      <div class="section-header reveal">
+        <div class="section-kicker">
+          <span class="section-pill-bar"></span>
+          <span data-i18n="protocols.kicker">OPEN STANDARDS &amp; NOSTR STACK</span>
+          <span class="section-divider"></span>
+        </div>
+        <h2 class="section-title" data-i18n="protocols.title">Built on open protocols anyone can inspect or self-host</h2>
+      </div>
+
+      <div class="nip-grid reveal">
+        <div class="nip-card glass-surface"><code>NIP-01</code><span data-i18n="protocols.n01">Base Nostr relay protocol</span></div>
+        <div class="nip-card glass-surface"><code>NIP-19</code><span data-i18n="protocols.n19">Bech32 identity encoding</span></div>
+        <div class="nip-card glass-surface"><code>NIP-40</code><span data-i18n="protocols.n40">Relay event expiration</span></div>
+        <div class="nip-card glass-surface"><code>NIP-44</code><span data-i18n="protocols.n44">Versioned v2 encryption</span></div>
+        <div class="nip-card glass-surface"><code>NIP-46</code><span data-i18n="protocols.n46">Remote signer (bunker://)</span></div>
+        <div class="nip-card glass-surface"><code>NIP-47</code><span data-i18n="protocols.n47">Nostr Wallet Connect</span></div>
+        <div class="nip-card glass-surface"><code>NIP-55</code><span data-i18n="protocols.n55">Amber Android Signer</span></div>
+        <div class="nip-card glass-surface"><code>NIP-57</code><span data-i18n="protocols.n57">Lightning Zap receipts</span></div>
+        <div class="nip-card glass-surface"><code>NIP-78</code><span data-i18n="protocols.n78">Encrypted app snapshots</span></div>
+        <div class="nip-card glass-surface"><code>kind 1315–18</code><span data-i18n="protocols.k1315">Road reports, votes &amp; edits</span></div>
+        <div class="nip-card glass-surface"><code>Roadbeacon</code><span data-i18n="protocols.rb">Shared road-event format</span></div>
+        <div class="nip-card glass-surface"><code>MeshCore 🧪</code><span data-i18n="protocols.mc">Experimental LoRa radio</span></div>
+      </div>
+
+      <div class="stack-marquee glass-surface reveal">
+        <span>Kotlin</span>
+        <span>Jetpack Compose</span>
+        <span>MapLibre Native</span>
+        <span>OpenStreetMap</span>
+        <span>OSRM</span>
+        <span>Valhalla</span>
+        <span>GraphHopper</span>
+        <span>Transitous</span>
+        <span>Kokoro-82M</span>
+        <span>ONNX Runtime</span>
+        <span>eSpeak NG</span>
+        <span>SearXNG</span>
+      </div>
+    </section>
+
+    <!-- DOWNLOAD SECTION -->
+    <section id="download" class="section container">
+      <div class="download-box glass-surface reveal">
+        <div class="download-glow" aria-hidden="true"></div>
+
+        <div class="download-header">
+          <img src="assets/app_icon.png" alt="Roadstr app icon" class="download-app-icon" width="72" height="72">
+          <div>
+            <span class="version-pill version-pill-lg">Release v1.4.0 · Android</span>
+            <h2 data-i18n="download.title">Get Roadstr on your Android device</h2>
+            <p data-i18n="download.subtitle">Signed reproducible APKs straight from GitHub Releases, plus Zapstore &amp; F-Droid metadata. Upgrades cleanly over 0.5.x without losing your data.</p>
+          </div>
+        </div>
+
+        <div class="apk-grid">
+          <a href="https://github.com/roadstrapp/roadstr-app/releases/download/v1.4.0/app-arm64-v8a-release.apk" class="apk-card apk-primary">
+            <div class="apk-meta">
+              <span class="apk-badge" data-i18n="download.recommended">Recommended</span>
+              <span class="apk-size">99 MB</span>
+            </div>
+            <strong>arm64-v8a APK</strong>
+            <span class="apk-desc" data-i18n="download.arm64Desc">Modern 64-bit Android phones (Pixel, GrapheneOS, Samsung, etc.)</span>
+            <span class="apk-action" data-i18n="download.downloadNow">Download APK →</span>
+          </a>
+
+          <a href="https://github.com/roadstrapp/roadstr-app/releases/download/v1.4.0/app-release.apk" class="apk-card">
+            <div class="apk-meta">
+              <span class="apk-badge apk-badge-muted" data-i18n="download.universal">Universal</span>
+              <span class="apk-size">211 MB</span>
+            </div>
+            <strong>Universal APK</strong>
+            <span class="apk-desc" data-i18n="download.uniDesc">Contains all ABIs — works on any supported Android architecture.</span>
+            <span class="apk-action" data-i18n="download.downloadNow">Download APK →</span>
+          </a>
+
+          <a href="https://github.com/roadstrapp/roadstr-app/releases/tag/v1.4.0" target="_blank" rel="noopener noreferrer" class="apk-card">
+            <div class="apk-meta">
+              <span class="apk-badge apk-badge-muted">All Builds</span>
+              <span class="apk-size">v1.4.0</span>
+            </div>
+            <strong>armeabi-v7a · x86_64</strong>
+            <span class="apk-desc" data-i18n="download.otherDesc">32-bit ARM, x86_64 emulators, release notes, and full SHA256SUMS.</span>
+            <span class="apk-action" data-i18n="download.openReleases">GitHub Releases ↗</span>
+          </a>
+        </div>
+
+        <!-- SHA-256 verification bar -->
+        <div class="verify-box">
+          <div class="verify-label">
+            <span>SHA-256 · <code>app-arm64-v8a-release.apk</code></span>
+            <a href="https://github.com/roadstrapp/roadstr-app/releases/download/v1.4.0/SHA256SUMS" class="text-link">SHA256SUMS ↗</a>
+          </div>
+          <div class="verify-hash-row">
+            <code id="sha256-value">fb65177c68311c99dfa287ac5cb943b87274613f9f1f232e38314189f66f48e4</code>
+            <button type="button" class="copy-btn" data-copy="fb65177c68311c99dfa287ac5cb943b87274613f9f1f232e38314189f66f48e4" data-i18n="download.copy">Copy</button>
+          </div>
+        </div>
+
+        <!-- Build from source -->
+        <details class="build-details">
+          <summary data-i18n="download.buildSummary">Or build from source yourself</summary>
+          <div class="build-code-wrap">
+            <pre class="code-block"><code>git clone https://github.com/roadstrapp/roadstr-app.git
+cd roadstr-app
+flutter pub get &amp;&amp; flutter gen-l10n
+flutter build apk --release</code></pre>
+            <button type="button" class="copy-btn" data-copy="git clone https://github.com/roadstrapp/roadstr-app.git && cd roadstr-app && flutter pub get && flutter gen-l10n && flutter build apk --release" data-i18n="download.copy">Copy</button>
+          </div>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer container">
+    <div class="footer-inner glass-surface">
+      <div class="footer-brand">
+        <img src="assets/app_icon.png" alt="Roadstr icon" width="36" height="36">
+        <div>
+          <strong>Roadstr</strong>
+          <p data-i18n="footer.tagline">Open-source decentralised navigation · MIT License</p>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <a href="https://github.com/roadstrapp/roadstr-app" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://github.com/roadstrapp/roadstr-app/releases" target="_blank" rel="noopener noreferrer" data-i18n="footer.releases">Releases</a>
+        <a href="https://github.com/roadstrapp/roadstr-app/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer">Changelog</a>
+        <a href="https://github.com/roadstrapp/roadstr-app/blob/main/README.md#privacy" target="_blank" rel="noopener noreferrer" data-i18n="footer.privacy">Privacy</a>
+        <a href="https://github.com/roadstrapp/roadstr-app/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>
+      </div>
+    </div>
+    <p class="footer-attrib" data-i18n="footer.attrib">Map data © OpenStreetMap contributors · Built with Nostr, MapLibre &amp; Bitcoin Lightning.</p>
+  </footer>
+
+  <!-- Lightbox Modal for Screenshots -->
+  <div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Screenshot viewer">
+    <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Close">✕</button>
+    <button type="button" class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Previous screenshot">‹</button>
+    <figure class="lightbox-content">
+      <img id="lightbox-img" src="" alt="">
+      <figcaption id="lightbox-caption"></figcaption>
+    </figure>
+    <button type="button" class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Next screenshot">›</button>
+  </div>
+
+  <!-- Toast notification (Roadstr floating snackbar style) -->
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
