@@ -17,8 +17,8 @@
       'hero.titleLead': 'Navigate freely.',
       'hero.titleAccent': 'Powered by Nostr & OpenStreetMap.',
       'hero.subtitle': 'Open-source, decentralised turn-by-turn GPS navigation for Android. Real-time community road alerts over Nostr, on-device AI voice guidance, downloadable offline maps, worldwide public transport, and Lightning zaps — with zero accounts, zero tracking, and zero Google Play Services.',
-      'hero.downloadCta': 'Download v1.4.0 APK',
-      'hero.githubCta': 'View Source',
+      'hero.downloadCta': 'Download on Zapstore',
+      'hero.directApkCta': 'Direct APK & SHA-256',
       'hero.metricLang': 'Languages',
       'hero.metricOffline': 'Offline Cities',
       'hero.metricTrackers': 'Trackers & Accounts',
@@ -94,11 +94,11 @@
       'download.subtitle': 'Signed reproducible APKs straight from GitHub Releases, plus Zapstore & F-Droid metadata. Upgrades cleanly over 0.5.x without losing your data.',
       'download.recommended': 'Recommended',
       'download.universal': 'Universal',
+      'download.zapstoreDesc': 'Install and keep Roadstr up to date via Zapstore, the decentralised Nostr app store.',
+      'download.openZapstore': 'Download on Zapstore ↗',
       'download.arm64Desc': 'Modern 64-bit Android phones (Pixel, GrapheneOS, Samsung, etc.)',
       'download.uniDesc': 'Contains all ABIs — works on any supported Android architecture.',
-      'download.otherDesc': '32-bit ARM, x86_64 emulators, release notes, and full SHA256SUMS.',
       'download.downloadNow': 'Download APK →',
-      'download.openReleases': 'GitHub Releases ↗',
       'download.copy': 'Copy',
       'download.buildSummary': 'Or build from source yourself',
       'footer.tagline': 'Open-source decentralised navigation · MIT License',
@@ -119,8 +119,8 @@
       'hero.titleLead': 'Naviga libero.',
       'hero.titleAccent': 'Su Nostr e OpenStreetMap.',
       'hero.subtitle': 'Navigazione GPS turn-by-turn open source e decentralizzata per Android. Segnalazioni stradali in tempo reale su Nostr, voce AI locale sul dispositivo, mappe offline scaricabili, trasporto pubblico mondiale e zap Lightning — senza account, senza tracciamento e senza Google Play Services.',
-      'hero.downloadCta': 'Scarica APK v1.4.0',
-      'hero.githubCta': 'Codice Sorgente',
+      'hero.downloadCta': 'Scarica su Zapstore',
+      'hero.directApkCta': 'APK Diretto e SHA-256',
       'hero.metricLang': 'Lingue',
       'hero.metricOffline': 'Città Offline',
       'hero.metricTrackers': 'Tracker e Account',
@@ -196,11 +196,11 @@
       'download.subtitle': 'APK firmati e verificabili da GitHub Releases, più metadati Zapstore e F-Droid. Si aggiorna sopra la 0.5.x senza perdere i tuoi dati.',
       'download.recommended': 'Consigliato',
       'download.universal': 'Universale',
+      'download.zapstoreDesc': 'Installa e mantieni aggiornato Roadstr tramite Zapstore, lo store decentralizzato su Nostr.',
+      'download.openZapstore': 'Scarica su Zapstore ↗',
       'download.arm64Desc': 'Smartphone Android 64-bit moderni (Pixel, GrapheneOS, Samsung, ecc.)',
       'download.uniDesc': 'Include tutte le architetture — funziona su qualsiasi Android supportato.',
-      'download.otherDesc': 'ARM 32-bit, emulatori x86_64, note di rilascio e file SHA256SUMS completo.',
       'download.downloadNow': 'Scarica APK →',
-      'download.openReleases': 'GitHub Releases ↗',
       'download.copy': 'Copia',
       'download.buildSummary': 'Oppure compila dal codice sorgente',
       'footer.tagline': 'Navigazione decentralizzata open source · Licenza MIT',
@@ -541,7 +541,11 @@
       document.querySelectorAll('.cursor-opt').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       const key = btn.dataset.cursor;
-      if (activeCursorImg) activeCursorImg.src = `assets/cursors/${key}.png`;
+      const isVehicle = btn.dataset.vehicle === 'true';
+      if (activeCursorImg) {
+        activeCursorImg.src = `assets/cursors/${key}.png`;
+        activeCursorImg.classList.toggle('is-vehicle', isVehicle);
+      }
       if (activeCursorName) activeCursorName.textContent = btn.dataset.label;
     });
   });

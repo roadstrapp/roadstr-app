@@ -1167,27 +1167,47 @@ html[data-theme^="light"] .icon-sun { display: none; }
 }
 
 .mini-road-outer {
-  stroke: rgba(var(--accent-rgb), 0.22);
+  stroke: rgba(var(--accent-rgb), 0.18);
+}
+
+.mini-road-edge {
+  stroke: rgba(var(--accent-rgb), 0.34);
 }
 
 .mini-road-dash {
-  stroke: rgba(var(--accent-rgb), 0.65);
-  animation: routeFlow 6s linear infinite;
+  stroke: rgba(var(--accent-rgb), 0.72);
+  animation: roadScrollLeft 1.6s linear infinite;
+}
+
+@keyframes roadScrollLeft {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: 56; }
 }
 
 .active-cursor-sprite {
   position: relative;
   z-index: 2;
-  width: 58px;
-  height: 58px;
+  width: 62px;
+  height: 62px;
   object-fit: contain;
-  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.35));
-  animation: cursorBob 2.4s ease-in-out infinite;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.38));
+  animation: cursorWalk 1.8s ease-in-out infinite;
 }
 
-@keyframes cursorBob {
-  0%, 100% { transform: translateY(0) rotate(-3deg); }
-  50% { transform: translateY(-5px) rotate(3deg); }
+.active-cursor-sprite.is-vehicle {
+  width: 68px;
+  height: 68px;
+  animation: cursorCruise 2.4s ease-in-out infinite;
+}
+
+@keyframes cursorCruise {
+  0%, 100% { transform: translateX(-5px) rotate(90deg); }
+  50% { transform: translateX(5px) rotate(90deg); }
+}
+
+@keyframes cursorWalk {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-4px) rotate(2deg); }
 }
 
 .active-cursor-name {
